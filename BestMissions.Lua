@@ -1,0 +1,1731 @@
+util.require_natives(1676318796)
+require "bestmissions.ped_list"
+require "bestmissions.mission_numbers"
+
+Wait = util.yield
+joaat = util.joaat
+Print = util.toast
+
+function CreateArgsT(MaxLen, LocalAddr, NextLocalOffset, DecreaseI, SelectedVehs, DisabledVehs, UpgradeType, PedSetts, BringTargets, VehHealth)
+    local ArgsT = {}
+    ArgsT.MaxLen = MaxLen
+    ArgsT.LocalAddr = LocalAddr
+    ArgsT.NextLocalOffset = NextLocalOffset
+    ArgsT.DecreaseI = DecreaseI
+    if SelectedVehs ~= nil then
+        ArgsT.SelectedVehs = SelectedVehs
+    end
+    if DisabledVehs ~= nil then
+        ArgsT.DisabledVehs = DisabledVehs
+    end
+    if UpgradeType ~= nil then
+        ArgsT.UpgradeType = UpgradeType
+    end
+    if PedSetts ~= nil then
+        ArgsT.PedSetts = PedSetts
+    end
+    if BringTargets ~= nil then
+        ArgsT.BringTargets = BringTargets
+    end
+    if VehHealth ~= nil then
+        ArgsT.VehHealth = VehHealth
+    end
+    return ArgsT
+end
+
+local SupplyVehsList = {
+    "buzzard",
+    "toreador",
+    "vigilante",
+    "oppressor"
+}
+
+local HeadHunter_Vehs = {
+    "vetir"
+}
+
+local BikerSell_DisabledVehs = {
+    {Model1 = "dodo", Model2 = "raiju"},
+    {Model1 = "pounder", Model2 = "vigilante"},
+    {Model1 = "buzzard2", Model2 = "raiju"},
+    {Model1 = "bagger", Model2 = "oppressor"},
+    {Model1 = "dinghy3", Model2 = "seasparrow"}
+}
+
+local IslH_DisabledVehs = {
+    {Model1 = "velum2", Model2 = "streamer216"},
+    {Model1 = "longfin", Model2 = "seasparrow"},
+    {Model1 = "valkyrie", Model2 = "pyro", Upgrade = 0},
+    {Model1 = "valkyrie2", Model2 = "pyro", Upgrade = 0}
+}
+
+local ContrabandBuy_DisabledVehs = {
+    {Model1 = "marquis", Model2 = "marquis"},
+    {Model1 = "valkyrie", Model2 = "valkyrie"},
+    {Model1 = "valkyrie2", Model2 = "valkyrie2"},
+    {Model1 = "frogger", Model2 = "frogger"}
+}
+
+local ContrabandSell_DisabledVehs = {
+    {Model1 = "tug", Model2 = "seasparrow"},
+    {Model1 = "titan", Model2 = "raiju"},
+    {Model1 = "brickade", Model2 = "scramjet"}
+}
+
+local BBattle2_Objects = {
+    "ex_prop_crate_elec_bc"
+}
+
+local VehsList = {}
+local VehTable = util.get_vehicles()
+for index, vehs in pairs(VehTable) do
+    if vehs.name ~= nil then
+        if not util.is_this_model_a_trailer(vehs.name) then
+            VehsList[#VehsList + 1] = vehs.name
+        end
+    end
+end
+
+local WeapsList = {}
+local WeapsT = util.get_weapons()
+for index, weaps in pairs(WeapsT) do
+    if weaps.hash ~= nil then
+        WeapsList[#WeapsList + 1] = weaps.hash
+    end
+end
+
+local AiHateRel = "rgFM_AiHate"
+local AiLikeRel = "rgFM_AiLike"
+local AiLikeHateAiHateRel = "rgFM_AiLike_HateAiHate"
+local AiHateAiHateRel = "rgFM_HateAiHate"
+local AiHateEveryone = "rgFM_HateEveryOne"
+
+local GunRunning_SupplyVehNetID_Local = 1205+4
+local BikerResupply_SupplyVehNetID_Local = 932+33
+local BikerResupply_PedsNetID_Local = 932+73+1
+local BikerResupply_NextPed = 15
+local BikerResupply_VehsNetID_Local = 932+404+1
+local BikerResupply_NextVeh = 5
+local BikerSell_DeliveryVehNetID = 698+59
+
+local CasinoHeist_SupplyVehNetIDs = 4275
+local CasinoHeist_NextSupplyVehs = 4
+local CasinoHeist_EnemyVehs = 4275+947+1
+local CasinoHeist_NextEnemyVehs = 8
+local CasinoHeist_PedsNetIDs = 4275+106+1
+local CasinoHeist_NextPeds = 24
+local CasinoHeist_ObjectsNetIDs = 4275
+
+local Smuggler_VehNetID = 1928+530+1
+local Smuggler_NextVeh = 9
+local CH_DisabledVehs = {
+    {Model1 = "stockade", Model2 = "stockade"},
+    {Model1 = "riot", Model2 = "riot"},
+    {Model1 = "cargobob2", Model2 = "cargobob2"}
+}
+
+local CH_DisabledObjs = {
+    {Model1 = "ch_prop_emp_01b", Model2 = "ch_prop_emp_01b"},
+    {Model1 = "prop_drug_package_02", Model2 = "prop_drug_package_02"}
+}
+
+local Biker_DisabledVehs = {
+    {Model1 = "stockade", Model2 = "stockade"}
+}
+
+local Biker_VehNetIDsT = {}
+local Biker_EnemyVehNetIDsT = {}
+local Biker_PedNetIDsT = {}
+local Biker_ObjsT = {}
+local Biker_SpawnObjsT = CreateArgsT(8, BikerResupply_SupplyVehNetID_Local, 1, 0, BBattle2_Objects, nil)
+local Biker_SupplyVehsArgs = CreateArgsT(8, BikerResupply_SupplyVehNetID_Local, 1, 0, SupplyVehsList, Biker_DisabledVehs)
+local Biker_VehsArgs = CreateArgsT(10, BikerResupply_VehsNetID_Local, BikerResupply_NextVeh, 1, VehsList, nil)
+local Biker_PedsArgs = CreateArgsT(22, BikerResupply_PedsNetID_Local, BikerResupply_NextPed, 1, nil, nil, nil, 2, 200.0)
+local Biker_ObjsArgs = CreateArgsT(8, BikerResupply_SupplyVehNetID_Local, 1, 0, BBattle2_Objects, nil)
+
+local CH_VehNetIDsT = {}
+local CH_EnemyVehNetIDsT = {}
+local CH_PedNetIDsT = {}
+local CH_ObjsNetIDsT = {}
+local CH_SupplyVehsArgs = CreateArgsT(8, CasinoHeist_SupplyVehNetIDs, 1, 0, SupplyVehsList, CH_DisabledVehs, 1, nil, 600.0)
+local CH_VehsArgs = CreateArgsT(30, CasinoHeist_EnemyVehs, CasinoHeist_NextEnemyVehs, 1, VehsList, CH_DisabledVehs, 0, nil, 600.0)
+local CH_PedsArgs = CreateArgsT(35, CasinoHeist_PedsNetIDs, CasinoHeist_NextPeds, 1, nil, nil, nil, 2, 600.0)
+local CH_ObjsArgs = CreateArgsT(8, CasinoHeist_ObjectsNetIDs, 1, 0, BBattle2_Objects, nil, nil, nil, nil)
+
+local BikerSell_SupplyVehsT = {}
+local BikerSell_SupplyVehsArgs = CreateArgsT(4, BikerSell_DeliveryVehNetID, 1, 0, SupplyVehsList, BikerSell_DisabledVehs, 1, nil, nil, 5000000)
+
+local IslH_VehsNetIDLocal = 13062+863+1
+local IslH_NextVehsNetIDLocal = 8
+local IslH_PedsNetIDLocal = 13062+112+1
+local IslH_NextPedsNetIDLocal = 25
+local IslH_VehsArgs = CreateArgsT(25, IslH_VehsNetIDLocal, IslH_NextVehsNetIDLocal, 1, VehsList, IslH_DisabledVehs, 0, nil, nil, 5000)
+local IslH_PedsArgs = CreateArgsT(30, IslH_PedsNetIDLocal, IslH_NextPedsNetIDLocal, 1, nil, nil, nil, 1)
+local IslH_VehsT = {}
+local IslH_PedsT = {}
+
+local HeadHunter_VehNetIDs = 94+2+1+2
+local HeadHunter_NextVehNetIDs = 26
+local HeadHunter_PedNetIDs = 94+2+1+1
+local HeadHunter_NextPedNetIDs = 26
+local HeadHunter_VehsArgs = CreateArgsT(4, HeadHunter_VehNetIDs, HeadHunter_NextVehNetIDs, 1, HeadHunter_Vehs, nil, 0, nil)
+local HeadHunter_PedsArgs = CreateArgsT(4, HeadHunter_PedNetIDs, HeadHunter_NextPedNetIDs, 1, nil, nil, nil, 2, 200.0)
+local HeadHunter_VehsT = {}
+local HeadHunter_PedsT = {}
+
+--local ContrabandBuy_SupplyVehNetIDs = 599+159
+--local ContrabandBuy_NextSupplyVehs = 4
+--local ContrabandBuy_EnemyVehs = 599+14
+--local ContrabandBuy_PedsNetIDs = 599+23+1
+--local ContrabandBuy_NextPeds = 9
+--local ContrabandBuy_ObjectsNetIDs = 599+270
+--local ContrabandBuy_SupplyVehsArgs = CreateArgsT(3, ContrabandBuy_EnemyVehs, 1, 0, SupplyVehsList, nil, 1, nil)
+--local ContrabandBuy_VehsArgs = CreateArgsT(6, ContrabandBuy_SupplyVehNetIDs, ContrabandBuy_NextSupplyVehs, 1, VehsList, nil, 0, nil)
+--local ContrabandBuy_PedsArgs = CreateArgsT(15, ContrabandBuy_PedsNetIDs, ContrabandBuy_NextPeds, 1, nil, nil, nil, 2)
+--local ContrabandBuy_ObjsArgs = CreateArgsT(3, ContrabandBuy_EnemyVehs, 1, 0, BBattle2_Objects, nil, nil, nil, nil)
+local ContrabandBuy_SupplyVehNetIDs = 599+14
+local ContrabandBuy_NextSupplyVehs = 1
+local ContrabandBuy_EnemyVehs = 599+159
+local ContrabandBuy_PedsNetIDs = 599+23+1
+local ContrabandBuy_NextPeds = 9
+local ContrabandBuy_ObjectsNetIDs = 599+14
+local ContrabandBuy_SupplyVehsArgs = CreateArgsT(3, ContrabandBuy_SupplyVehNetIDs, ContrabandBuy_NextSupplyVehs, 0, SupplyVehsList, ContrabandBuy_DisabledVehs, 1, nil)
+local ContrabandBuy_VehsArgs = CreateArgsT(6, ContrabandBuy_EnemyVehs, 1, 0, VehsList, ContrabandBuy_DisabledVehs, 0, nil)
+local ContrabandBuy_PedsArgs = CreateArgsT(15, ContrabandBuy_PedsNetIDs, ContrabandBuy_NextPeds, 1, nil, nil, nil, 2)
+local ContrabandBuy_ObjsArgs = CreateArgsT(3, ContrabandBuy_ObjectsNetIDs, 1, 0, BBattle2_Objects, nil, nil, nil, nil)
+local ContrabandBuy_SupplyVehsT = {}
+local ContrabandBuy_VehsT = {}
+local ContrabandBuy_PedsT = {}
+local ContrabandBuy_ObjsT = {}
+
+local ContrabandSell_SupplyVehNetIDs = 541+35
+local ContrabandSell_PedsNetIDs = 541+401+1
+local ContrabandSell_NextPeds = 8
+local ContrabandSell_SupplyVehsArgs = CreateArgsT(3, ContrabandSell_SupplyVehNetIDs, 1, 0, SupplyVehsList, ContrabandSell_DisabledVehs, 1, nil)
+local ContrabandSell_VehsArgs = CreateArgsT(6, ContrabandBuy_SupplyVehNetIDs, ContrabandBuy_NextSupplyVehs, 1, VehsList, nil, 0, nil)
+local ContrabandSell_PedsArgs = CreateArgsT(12, ContrabandSell_PedsNetIDs, ContrabandSell_NextPeds, 1, nil, nil, nil, 1)
+local ContrabandSell_SupplyVehsT = {}
+local ContrabandSell_VehsT = {}
+local ContrabandSell_PedsT = {}
+
+local Biker_RescueContact_PedsNetIDs = 1261+11
+local Biker_RescueContact_VehsNetIDs = 1261+36
+local Biker_RescueContact_PedsArgs = CreateArgsT(20, Biker_RescueContact_PedsNetIDs, 1, 0, nil, nil, nil, 3, nil)
+local Biker_RescueContact_VehsArgs = CreateArgsT(4, Biker_RescueContact_VehsNetIDs, 1, 0, VehsList, nil, 0, nil, nil)
+local Biker_RescueContact_PedsT = {}
+local Biker_RescueContact_VehsT = {}
+
+local BusinessBattles_SupplyVehsNetIDs = 2399
+local BusinessBattles_VehsNetIDs = 2399+624+1
+local BusinessBattles_NextVehsNetIDs = 7
+local BusinessBattles_PedsNetIDs = 2399+98+1
+local BusinessBattles_NextPedsNetIDs = 15
+local BusinessBattles_SupplyVehsArgs = CreateArgsT(8, BusinessBattles_SupplyVehsNetIDs, 1, 0, VehsList, nil, 1, nil, nil)
+local BusinessBattles_VehsArgs = CreateArgsT(30, BusinessBattles_VehsNetIDs, BusinessBattles_NextVehsNetIDs, 1, VehsList, nil, 0, nil, nil)
+local BusinessBattles_PedsArgs = CreateArgsT(35, BusinessBattles_PedsNetIDs, BusinessBattles_NextPedsNetIDs, 1, nil, nil, nil, 3, 400.0)
+local BusinessBattles_SupplyVehsT = {}
+local BusinessBattles_VehsT = {}
+local BusinessBattles_PedsT = {}
+
+local BusinessBattles2_VehsNetIDs = 5090+843+1
+local BusinessBattles2_NextVehsNetIDs = 8
+local BusinessBattles2_PedsNetIDs = 5090+92+1
+local BusinessBattles2_NextPedsNetIDs = 25
+local BusinessBattles2_ObjsNetIDs = 5090+2
+local BusinessBattles2_NextObjsNetIDs = 5
+local BusinessBattles2_VehsArgs = CreateArgsT(10, BusinessBattles2_VehsNetIDs, BusinessBattles2_NextVehsNetIDs, 1, VehsList, nil, 0, nil, nil)
+local BusinessBattles2_PedsArgs = CreateArgsT(30, BusinessBattles2_PedsNetIDs, BusinessBattles2_NextPedsNetIDs, 1, nil, nil, nil, 2, nil)
+local BusinessBattles2_ObjsArgs = CreateArgsT(8, BusinessBattles2_ObjsNetIDs, 1, 0, BBattle2_Objects, nil, nil, nil, nil)
+local BusinessBattles2_VehsT = {}
+local BusinessBattles2_PedsT = {}
+local BusinessBattles2_ObjsT = {}
+
+local FMContentCargo_ObjsNetIDs = 5621+2
+--local FMContentCargo_ObjsNetIDs = 5621+908
+--local FMContentCargo_NextObjsNetIDs = 5
+local FMContentCargo_PropsNetIDs = 5621+908+1
+local FMContentCargo_NextProps = 5
+local FMContentCargo_ObjsArgs = CreateArgsT(3, FMContentCargo_ObjsNetIDs, 1, 0, BBattle2_Objects, nil, nil, nil, nil)
+local FMContentCargo_BringPropsArgs = CreateArgsT(31, FMContentCargo_PropsNetIDs, FMContentCargo_NextProps, 1, BBattle2_Objects, nil, nil, nil, nil)
+--local FMContentCargo_ObjsArgs = CreateArgsT(3, FMContentCargo_ObjsNetIDs, FMContentCargo_NextObjsNetIDs, 1, BBattle2_Objects, nil, nil, nil, nil)
+local FMContentCargo_ObjsT = {}
+local FMContentCargo_SpawnObjsT = {}
+local FMContentCargo_PropsT = {}
+
+local MissionEnhancerMenu = menu.list(menu.my_root(), "Mission Enhancer", {}, "Randomize and enhance tools.")
+
+local BikerMissions = false
+menu.toggle(MissionEnhancerMenu, "Improve Missions", {}, "Let it fun.", function(Toggle)
+	BikerMissions = Toggle
+	if BikerMissions then
+		while BikerMissions do
+            ScriptHandler("business_battles", BusinessBattles_SupplyVehsT, BusinessBattles_VehsT, BusinessBattles_PedsT, BusinessBattles_SupplyVehsArgs, BusinessBattles_VehsArgs, BusinessBattles_PedsArgs)
+            ScriptHandler("fm_content_business_battles", BusinessBattles2_VehsT, nil, BusinessBattles2_PedsT, BusinessBattles2_VehsArgs, nil, BusinessBattles2_PedsArgs, BusinessBattles2_ObjsT, BusinessBattles2_ObjsArgs)
+            ScriptHandler("gb_casino_heist", CH_VehNetIDsT, CH_EnemyVehNetIDsT, CH_PedNetIDsT, CH_SupplyVehsArgs, CH_VehsArgs, CH_PedsArgs, CH_ObjsNetIDsT, CH_ObjsArgs)
+            ScriptHandler("gb_illicit_goods_resupply", Biker_VehNetIDsT, Biker_EnemyVehNetIDsT, Biker_PedNetIDsT, Biker_SupplyVehsArgs, Biker_VehsArgs, Biker_PedsArgs, Biker_ObjsT, Biker_ObjsArgs, Biker_SpawnObjsT)
+            ScriptHandler("gb_biker_contraband_sell", BikerSell_SupplyVehsT, nil, nil, BikerSell_SupplyVehsArgs, nil, nil)
+            ScriptHandler("gb_biker_rescue_contact", Biker_RescueContact_VehsT, nil, Biker_RescueContact_PedsT, Biker_RescueContact_VehsArgs, nil, Biker_RescueContact_PedsArgs)
+            ScriptHandler("fm_content_island_heist", IslH_VehsT, nil, IslH_PedsT, IslH_VehsArgs, nil, IslH_PedsArgs)
+            ScriptHandler("gb_headhunter", nil, HeadHunter_VehsT, HeadHunter_PedsT, nil, HeadHunter_VehsArgs, HeadHunter_PedsArgs)
+            ScriptHandler("gb_contraband_buy", ContrabandBuy_SupplyVehsT, ContrabandBuy_VehsT, ContrabandBuy_PedsT, ContrabandBuy_SupplyVehsArgs, ContrabandBuy_VehsArgs, ContrabandBuy_PedsArgs, ContrabandBuy_ObjsT, ContrabandBuy_ObjsArgs)
+            ScriptHandler("gb_contraband_sell", ContrabandSell_SupplyVehsT, nil, nil, ContrabandSell_SupplyVehsArgs, nil, nil)
+            --ScriptHandler("fm_content_cargo", nil, nil, nil, nil, nil, nil, FMContentCargo_ObjsT, FMContentCargo_ObjsArgs, nil) --FMContentCargo_PropsT, FMContentCargo_BringPropsArgs)
+            Wait()
+        end
+	end
+end)
+
+local CreateSupplies = false
+menu.toggle(MissionEnhancerMenu, "Auto Create Supplies", {}, "", function(Toggle)
+	CreateSupplies = Toggle
+end)
+
+local MoreSupplyVehHealth = false
+menu.toggle(MissionEnhancerMenu, "More Supply Vehicle Health", {}, "Challenging.", function(Toggle)
+	MoreSupplyVehHealth = Toggle
+end)
+
+local BringTargetsCloser = false
+menu.toggle(MissionEnhancerMenu, "Bring Far Targets Closer", {}, "To make it less boring.", function(Toggle)
+	BringTargetsCloser = Toggle
+end)
+
+local BringMissionCloser = false
+menu.toggle(MissionEnhancerMenu, "Bring All Far Entities Closer", {}, "To make it less boring.", function(Toggle)
+	BringMissionCloser = Toggle
+end)
+
+local MaxDistToBring = 20.0
+menu.slider_float(MissionEnhancerMenu, "Closest Distance To Bring", {"closestbring"}, "Distance between the player and entity to teleport.", 1000, 50000, 2000, 1000, function(OnChange)
+    MaxDistToBring = OnChange / 100
+end)
+local DistToCheck = 100.0
+menu.slider_float(MissionEnhancerMenu, "Max Distance", {"maxdistancetobring"}, "How far it needs to be teleported.", 5000, 50000, 10000, 10000, function(OnChange)
+    DistToCheck = OnChange / 100
+end)
+
+local AddBlipForBringedEntity = false
+menu.toggle(MissionEnhancerMenu, "Add Blip To Teleported Entities", {}, "To locate.", function(Toggle)
+	AddBlipForBringedEntity = Toggle
+end, AddBlipForBringedEntity)
+
+local MissionStarterMenu = menu.list(menu.my_root(), "Mission Starter (Experimental)", {}, "Make other players play fun missions.")
+
+local SelectedMissionIndex = 1
+local SelectedMission = 166
+menu.list_select(MissionStarterMenu, "Which Mission Start", {"whichmission"}, "", MissionNames, SelectedMissionIndex, function(OnChange)
+    SelectedMission = MissionNumbers[OnChange]
+    SelectedMissionIndex = OnChange
+end)
+
+local SpecificMissionPlayers = true
+menu.toggle(MissionStarterMenu, "Mission For All Players", {}, "", function(Toggle)
+	SpecificMissionPlayers = Toggle
+end, SpecificMissionPlayers)
+
+local SendHost = true
+menu.toggle(MissionStarterMenu, "Send Host After Start", {}, "", function(Toggle)
+	SendHost = Toggle
+end, SendHost)
+
+local DuplicateScript = false
+menu.toggle(MissionStarterMenu, "Duplicate Mission", {}, "", function(Toggle)
+	DuplicateScript = Toggle
+end, DuplicateScript)
+
+local PlayersToJoin = {}
+local MissionStarter_PlayersToJoin = menu.list(MissionStarterMenu, "Which Players Send Mission", {}, "Select players to join the mission.", function()UpdatePlayersList()end, function()UpdatePlayersList()end)
+
+for i = 1, 30 do
+    if PlayersToJoin[i] == nil then
+        local PlayerName = "---"
+        if NETWORK.NETWORK_IS_PLAYER_ACTIVE(i-1) then
+            PlayerName = PLAYER.GET_PLAYER_NAME(i-1)
+        end
+        PlayersToJoin[i] = {}
+        PlayersToJoin[i].Include = false
+        PlayersToJoin[i].MenuPTR = menu.toggle(MissionStarter_PlayersToJoin, PlayerName, {}, "", function(OnChange) PlayersToJoin[i].Include = OnChange end, PlayersToJoin[i].Include)
+    end
+end
+
+function UpdatePlayersList()
+    for i = 1, 30 do
+        if PlayersToJoin[i] ~= nil then
+            local PlayerName = "---"
+            if NETWORK.NETWORK_IS_PLAYER_ACTIVE(i-1) then
+                PlayerName = PLAYER.GET_PLAYER_NAME(i-1)
+            end
+            menu.set_menu_name(PlayersToJoin[i].MenuPTR, PlayerName)
+        end
+    end
+end
+
+local PlayerNames = {}
+for i = 1, 30 do
+    if PlayerNames[i] == nil then
+        local PlayerName = "---"
+        if NETWORK.NETWORK_IS_PLAYER_ACTIVE(i-1) then
+            PlayerName = PLAYER.GET_PLAYER_NAME(i-1)
+        end
+        PlayerNames[i] = PlayerName
+    end
+end
+
+local WhichHostMenuPTR = nil
+WhichHostMenuPTR = menu.list_action(MissionStarterMenu, "Start Mission To Player", {"missiontoplayer"}, "Send mission.", PlayerNames, function(OnClick)
+    local Attempts = 0
+    while Attempts < 100 do
+        util.spoof_script("freemode", function()
+            if not NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
+                NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+            else
+                Attempts = 100
+            end
+            Attempts = Attempts + 1
+        end)
+        Wait()
+    end
+    memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * (OnClick - 1)), SelectedMission)
+    memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * (OnClick - 1)), OnClick-1)
+    for i = 1, 30 do
+        if PlayersToJoin[i].Include or SpecificMissionPlayers then
+            memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * (i - 1)), SelectedMission)
+            memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * (i - 1)), OnClick-1)
+        end
+    end
+    for i = 1, 30 do
+        if PlayerNames[i] ~= nil then
+            local PlayerName = "---"
+            if NETWORK.NETWORK_IS_PLAYER_ACTIVE(i-1) then
+                PlayerName = PLAYER.GET_PLAYER_NAME(i-1)
+            end
+            PlayerNames[i] = PlayerName
+            menu.set_list_action_options(WhichHostMenuPTR, PlayerNames)
+        end
+    end
+    if DuplicateScript then
+        StartMissionScript(OnClick - 1)
+    end
+end)
+
+menu.action(MissionStarterMenu, "Start Mission And Players Join", {}, "", function(Toggle)
+    local Attempts = 0
+    while Attempts < 100 do
+        util.spoof_script("freemode", function()
+            if not NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
+                NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+            else
+                Attempts = 100
+            end
+            Attempts = Attempts + 1
+        end)
+        Wait()
+    end
+    local PlayerID = PLAYER.PLAYER_ID()
+    for i = 1, 30 do
+        if PlayersToJoin[i].Include or SpecificMissionPlayers then
+            memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * (i - 1)), SelectedMission)
+            memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * (i - 1)), PlayerID)
+            --memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * PlayerID), SelectedMission)
+            --memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * PlayerID), PlayerID)
+        end
+    end
+    if DuplicateScript then
+        StartMissionScript(PlayerID)
+    end
+end)
+
+menu.action(MissionStarterMenu, "Start Mission For Players", {}, "Every player will start every instance of the same mission.", function(Toggle)
+    local Attempts = 0
+    while Attempts < 100 do
+        util.spoof_script("freemode", function()
+            if not NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
+                NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+            else
+                Attempts = 100
+            end
+            Attempts = Attempts + 1
+        end)
+        Wait()
+    end
+    local PlayerID = PLAYER.PLAYER_ID()
+    for i = 1, 30 do
+        if PlayersToJoin[i].Include or SpecificMissionPlayers then
+            memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * (i - 1)), SelectedMission)
+            memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * (i - 1)), i - 1)
+            --memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * PlayerID), SelectedMission)
+            --memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * PlayerID), PlayerID)
+        end
+    end
+    if DuplicateScript then
+        StartMissionScript()
+    end
+end)
+
+menu.action(MissionStarterMenu, "Start Mission For Self Only", {}, "", function(Toggle)
+    local Attempts = 0
+    while Attempts < 100 do
+        util.spoof_script("freemode", function()
+            if not NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
+                NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+            else
+                Attempts = 100
+            end
+            Attempts = Attempts + 1
+        end)
+        Wait()
+    end
+    local PlayerID = PLAYER.PLAYER_ID()
+    memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * PlayerID), PlayerID)
+    if DuplicateScript then
+        StartMissionScript()
+    else
+        memory.write_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * PlayerID), SelectedMission)
+    end
+end)
+
+menu.action(MissionStarterMenu, "Stop Mission", {}, "", function(Toggle)
+    local PlayerID = PLAYER.PLAYER_ID()
+    memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * PlayerID), -1)
+    memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * PlayerID), -1)
+end)
+
+menu.action(MissionStarterMenu, "Stop All Missions", {}, "", function(Toggle)
+    for i = 1, 30 do
+        memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * (i - 1)), -1)
+        memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * (i - 1)), -1)
+    end
+end)
+
+local SelectedScriptIndex = 1
+menu.list_action(MissionStarterMenu, "Start Script", {"whichscriptstart"}, "", ScriptNames, function(OnChange)
+    SelectedScriptIndex = OnChange
+    local Attempts = 0
+    while Attempts < 100 do
+        util.spoof_script("freemode", function()
+            if not NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
+                NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+            else
+                Attempts = 100
+            end
+            Attempts = Attempts + 1
+        end)
+        Wait()
+    end
+    local PlayerID = PLAYER.PLAYER_ID()
+    memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * PlayerID), PlayerID)
+    StartScriptOnly()
+end)
+
+menu.list_action(MissionStarterMenu, "Terminate Script", {"whichscriptstartterminate"}, "", ScriptNames, function(OnChange)
+    MISC.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME(ScriptArgs[OnChange].ScriptName)
+end)
+
+menu.action(MissionStarterMenu, "Stop All Scripts", {}, "", function(Toggle)
+    for i = 1, #ScriptArgs do
+        MISC.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME(ScriptArgs[i].ScriptName)
+    end
+end)
+
+function StartMissionScript(SetHostIndex)
+    local StackSize = MissionArgs[SelectedMissionIndex].StackSize
+    local ScriptName = MissionArgs[SelectedMissionIndex].ScriptName
+    local Arg1 = MissionArgs[SelectedMissionIndex].Arg
+    SCRIPT.REQUEST_SCRIPT(ScriptName)
+    while not SCRIPT.HAS_SCRIPT_LOADED(ScriptName) do
+        Wait()
+    end
+    local Args = memory.alloc(8 * 21)
+    memory.write_int(Args, Arg1)
+    memory.write_int(Args + 8, -1) --Default is -1
+    memory.write_int(Args + 8 * 2, -1) --Default is -1
+    memory.write_int(Args + 8 * 3, -1)
+    memory.write_int(Args + 8 * 4, -1)
+    memory.write_int(Args + 8 * 5, -1)
+    memory.write_int(Args + 8 * 6, -1)
+    memory.write_int(Args + 8 * 7, -1)
+    memory.write_int(Args + 8 * 8, -1)
+    memory.write_int(Args + 8 * 9, -1) --Default is -1
+    memory.write_int(Args + 8 * 10, -1)
+    memory.write_int(Args + 8 * 11, -1)
+    memory.write_int(Args + 8 * 12, -1)
+    memory.write_int(Args + 8 * 13, -1)
+    memory.write_int(Args + 8 * 14, -1)
+    memory.write_int(Args + 8 * 15, -1)
+    memory.write_int(Args + 8 * 16, -1) --Default is -1
+    memory.write_int(Args + 8 * 17, -1)
+    memory.write_int(Args + 8 * 18, -1)
+    memory.write_int(Args + 8 * 19, -1) --Default is -1
+    memory.write_int(Args + 8 * 20, -1) --Default is -1
+    SYSTEM.START_NEW_SCRIPT_WITH_ARGS(ScriptName, Args, 21, StackSize)
+    SCRIPT.SET_SCRIPT_AS_NO_LONGER_NEEDED(ScriptName)
+    if SendHost then
+        if SetHostIndex ~= nil then
+            local HasGetScriptHost = false
+            local HasGaveScriptHost = false
+            for i = 1, 300 do
+                if not HasGaveScriptHost then
+                    util.spoof_script(ScriptName, function()
+                        HasGetScriptHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+                        if not HasGetScriptHost then
+                            NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+                        end
+                        HasGetScriptHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+                    end)
+                end
+                if HasGetScriptHost then
+                    if not HasGaveScriptHost then
+                        HasGaveScriptHost = util.give_script_host(ScriptName, SetHostIndex)
+                    end
+                end
+                Wait()
+            end
+        end
+    end
+end
+
+function StartScriptOnly(SetHostIndex)
+    local StackSize = ScriptArgs[SelectedScriptIndex].StackSize
+    local ScriptName = ScriptArgs[SelectedScriptIndex].ScriptName
+    local Arg1 = ScriptArgs[SelectedScriptIndex].Arg
+    SCRIPT.REQUEST_SCRIPT(ScriptName)
+    while not SCRIPT.HAS_SCRIPT_LOADED(ScriptName) do
+        Wait()
+    end
+    local Args = memory.alloc(8 * 21)
+    memory.write_int(Args, Arg1)
+    memory.write_int(Args + 8, -1) --Default is -1
+    memory.write_int(Args + 8 * 2, -1) --Default is -1
+    memory.write_int(Args + 8 * 3, 0)
+    memory.write_int(Args + 8 * 4, 0)
+    memory.write_int(Args + 8 * 5, 0)
+    memory.write_int(Args + 8 * 6, 0)
+    memory.write_int(Args + 8 * 7, 0)
+    memory.write_int(Args + 8 * 8, 0)
+    memory.write_int(Args + 8 * 9, -1) --Default is -1
+    memory.write_int(Args + 8 * 10, 0)
+    memory.write_int(Args + 8 * 11, 0)
+    memory.write_int(Args + 8 * 12, 0)
+    memory.write_int(Args + 8 * 13, 0)
+    memory.write_int(Args + 8 * 14, 0)
+    memory.write_int(Args + 8 * 15, 0)
+    memory.write_int(Args + 8 * 16, -1) --Default is -1
+    memory.write_int(Args + 8 * 17, 0)
+    memory.write_int(Args + 8 * 18, 0)
+    memory.write_int(Args + 8 * 19, -1) --Default is -1
+    memory.write_int(Args + 8 * 20, -1) --Default is -1
+    SYSTEM.START_NEW_SCRIPT_WITH_ARGS(ScriptName, Args, 21, StackSize)
+    SCRIPT.SET_SCRIPT_AS_NO_LONGER_NEEDED(ScriptName)
+    if SendHost then
+        if SetHostIndex ~= nil then
+            local HasGetScriptHost = false
+            local HasGaveScriptHost = false
+            for i = 1, 300 do
+                if not HasGaveScriptHost then
+                    util.spoof_script(ScriptName, function()
+                        HasGetScriptHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+                        if not HasGetScriptHost then
+                            NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+                        end
+                        HasGetScriptHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+                    end)
+                end
+                if HasGetScriptHost then
+                    if not HasGaveScriptHost then
+                        HasGaveScriptHost = util.give_script_host(ScriptName, SetHostIndex)
+                    end
+                end
+                Wait()
+            end
+        end
+    end
+end
+
+local MissionSettingsMenu = menu.list(menu.my_root(), "Mission Settings", {}, "Disable some missions (Self only).")
+
+menu.toggle_loop(MissionSettingsMenu, "Avoid Lupe Missions", {}, "", function(Toggle)
+    local PlayerID = PLAYER.PLAYER_ID()
+    if memory.read_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * PlayerID)) == 294 then
+        memory.write_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * PlayerID), 167)
+    end
+end)
+
+local DevToolsMenu = menu.list(menu.my_root(), "DEV Tools", {}, "")
+
+menu.action(DevToolsMenu, "Copy Coords And Heading", {}, "", function(Toggle)
+    local Coords = ENTITY.GET_ENTITY_COORDS(PLAYER.PLAYER_PED_ID())
+    local Heading = ENTITY.GET_ENTITY_HEADING(PLAYER.PLAYER_PED_ID())
+    --util.copy_to_clipboard(Coords.x .. ", " .. Coords.y .. ", " .. Coords.z .. ", " .. Heading)
+    util.copy_to_clipboard("x = " .. Coords.x .. ", y = " .. Coords.y .. ", z = " .. Coords.z .. ", heading = " .. Heading)
+end)
+
+menu.action(DevToolsMenu, "Test", {}, "", function(Toggle)
+    Print(SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("business_battles_sell")))
+end)
+
+menu.text_input(DevToolsMenu, "Copy Local Addr", {"copylocaladdr"}, "For devs.", function(OnChange)
+    local TXTToNumber = SplitGlobals(OnChange)
+    if TXTToNumber ~= nil then
+        util.copy_to_clipboard(string.format("%X", memory.script_local("gb_illicit_goods_resupply", TXTToNumber)))
+    end
+end)
+
+menu.action(DevToolsMenu, "freemode Host", {}, "", function(Toggle)
+	util.spoof_script("freemode", function()
+        Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
+        --NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+        --Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
+    end)
+    util.spoof_script("am_launcher", function()
+        --Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
+        --NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+        --Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
+    end)
+end)
+
+menu.action(DevToolsMenu, "freemode Request Host", {}, "", function(Toggle)
+	util.spoof_script("freemode", function()
+        NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+        Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
+    end)
+    util.spoof_script("am_launcher", function()
+        NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+        Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
+    end)
+end)
+
+menu.toggle_loop(DevToolsMenu, "Test Freeze Mission", {}, "", function(Toggle)
+    util.spoof_script("freemode", function()
+        if not NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
+            NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+            Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
+        end
+    end)
+    util.spoof_script("am_launcher", function()
+        if not NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
+            NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+            Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
+        end
+    end)
+    if memory.read_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * 0)) == 294 then
+        --memory.write_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * 0), 167)
+        --memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * 0), 167)
+        --local PlayerID = PLAYER.PLAYER_ID()
+        --memory.write_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * PlayerID), 167)
+        --memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * PlayerID), 167)
+        --memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * PlayerID), 0)
+    end
+end)
+
+menu.action(MissionEnhancerMenu, "Close Biker App", {}, "Can fix your game sometimes.", function(Toggle)
+    MISC.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("appbikerbusiness")
+end)
+
+function CopyVehSettingsToAnotherVeh(CopyVehSetts, ToVeh)
+	local EngineHealth = VEHICLE.GET_VEHICLE_ENGINE_HEALTH(CopyVehSetts)
+	local PetrolTankHealth = VEHICLE.GET_VEHICLE_PETROL_TANK_HEALTH(CopyVehSetts)
+	local BodyHealth = VEHICLE.GET_VEHICLE_BODY_HEALTH(CopyVehSetts)
+	local MaxHealth = ENTITY.GET_ENTITY_MAX_HEALTH(CopyVehSetts)
+	local Health = ENTITY.GET_ENTITY_HEALTH(CopyVehSetts)
+    local PColor, SColor = memory.alloc_int(), memory.alloc_int()
+    VEHICLE.GET_VEHICLE_COLOURS(CopyVehSetts, PColor, SColor)
+    VEHICLE.SET_VEHICLE_COLOURS(ToVeh, memory.read_int(PColor), memory.read_int(SColor))
+	ENTITY.SET_ENTITY_MAX_HEALTH(ToVeh, MaxHealth)
+	ENTITY.SET_ENTITY_HEALTH(ToVeh, Health)
+	VEHICLE.SET_VEHICLE_ENGINE_HEALTH(ToVeh, EngineHealth)
+	VEHICLE.SET_PLANE_ENGINE_HEALTH(ToVeh, EngineHealth)
+	VEHICLE.SET_VEHICLE_PETROL_TANK_HEALTH(ToVeh, PetrolTankHealth)
+	VEHICLE.SET_VEHICLE_BODY_HEALTH(ToVeh, BodyHealth)
+    --for i = 0, 49 do
+    --    local VehMod = VEHICLE.GET_VEHICLE_MOD(CopyVehSetts, i)
+    --    VEHICLE.SET_VEHICLE_MOD(ToVeh, i, VehMod, false)
+    --end
+end
+
+function SetSupplyVehSettings(Veh, Health)
+    ENTITY.SET_ENTITY_MAX_HEALTH(Veh, Health)
+	ENTITY.SET_ENTITY_HEALTH(Veh, Health)
+	VEHICLE.SET_VEHICLE_ENGINE_HEALTH(Veh, 50000 + Health)
+	VEHICLE.SET_PLANE_ENGINE_HEALTH(Veh, 50000 + Health)
+	VEHICLE.SET_VEHICLE_PETROL_TANK_HEALTH(Veh, 50000 + Health)
+	VEHICLE.SET_VEHICLE_BODY_HEALTH(Veh, 50000 + Health)
+    VEHICLE.SET_VEHICLE_CAN_BE_TARGETTED(Veh, false)
+    VEHICLE.SET_VEHICLE_ALLOW_HOMING_MISSLE_LOCKON(Veh, false, false)
+    VEHICLE.SET_VEHICLE_TYRES_CAN_BURST(Veh, false)
+    VEHICLE.SET_VEHICLE_STRONG(Veh, true)
+    for k = 0, 48 do
+        local NumMods = entities.get_upgrade_max_value(Veh, k)
+        if NumMods > 0 then
+            local Rand = math.random(0, NumMods)
+            if Rand <= -1 then
+                Rand = 0
+            end
+            entities.set_upgrade_value(Veh, k, Rand, false)
+        else
+            if math.random(0, 1) == 1 then
+                entities.set_upgrade_value(Veh, k, NumMods, false)
+            end
+        end
+    end
+end
+
+function NetworkEntityVehicle(Entity)
+    ENTITY.SET_ENTITY_AS_MISSION_ENTITY(Entity, false, true)
+    local EntNetID = NETWORK.VEH_TO_NET(Entity)
+    NETWORK.SET_NETWORK_ID_EXISTS_ON_ALL_MACHINES(EntNetID, true)
+    NETWORK.SET_NETWORK_ID_ALWAYS_EXISTS_FOR_PLAYER(EntNetID, PLAYER.PLAYER_ID(), true)
+    return EntNetID
+end
+
+function NetworkEntityPed(Entity)
+    ENTITY.SET_ENTITY_AS_MISSION_ENTITY(Entity, false, true)
+    local EntNetID = NETWORK.PED_TO_NET(Entity)
+    NETWORK.SET_NETWORK_ID_EXISTS_ON_ALL_MACHINES(EntNetID, true)
+    NETWORK.SET_NETWORK_ID_ALWAYS_EXISTS_FOR_PLAYER(EntNetID, PLAYER.PLAYER_ID(), true)
+    return EntNetID
+end
+
+function NetworkEntityObject(Entity)
+    ENTITY.SET_ENTITY_AS_MISSION_ENTITY(Entity, false, true)
+    local EntNetID = NETWORK.OBJ_TO_NET(Entity)
+    NETWORK.SET_NETWORK_ID_EXISTS_ON_ALL_MACHINES(EntNetID, true)
+    NETWORK.SET_NETWORK_ID_ALWAYS_EXISTS_FOR_PLAYER(EntNetID, PLAYER.PLAYER_ID(), true)
+    return EntNetID
+end
+
+function SetPedCombatAbilities(ped)
+	PED.SET_PED_COMBAT_ATTRIBUTES(ped, 5, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(ped, 1, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(ped, 13, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(ped, 21, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(ped, 38, true)
+	PED.SET_PED_COMBAT_ATTRIBUTES(ped, 46, true)
+	PED.SET_PED_COMBAT_MOVEMENT(ped, 2)
+	PED.SET_PED_COMBAT_ABILITY(ped, 2) 
+	PED.SET_PED_COMBAT_RANGE(ped, 2)
+	PED.SET_PED_SEEING_RANGE(ped, 100.0)
+	PED.SET_PED_TARGET_LOSS_RESPONSE(ped, 1)
+	PED.SET_PED_HIGHLY_PERCEPTIVE(ped, true)
+	PED.SET_PED_VISUAL_FIELD_PERIPHERAL_RANGE(ped, 400.0)
+	PED.SET_COMBAT_FLOAT(ped, 10, 400.0)
+end
+
+function Request_Model(Model)
+    if STREAMING.IS_MODEL_VALID(Model) then
+        STREAMING.REQUEST_MODEL(Model)
+        while not STREAMING.HAS_MODEL_LOADED(Model) do
+			Wait()
+        end
+    end
+end
+
+function Request_Entity_Control(entity)
+	if not NETWORK.NETWORK_IS_IN_SESSION() then
+		return true
+	end
+	local netId = NETWORK.NETWORK_GET_NETWORK_ID_FROM_ENTITY(entity)
+	NETWORK.SET_NETWORK_ID_CAN_MIGRATE(netId, true)
+	return NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(entity)
+end
+
+local MaxCreateAttemps = 3
+local MaxZeroTick = 100
+
+function ScriptHandler(ScriptName, SupplyVehsT, VehsT, PedsT, SupplyVehsArgs, VehsArgs, PedsArgs, ObjectsT, ObjectsArgs, SpawnObjectsT, PropsT, BringPropsArgs)
+    if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat(ScriptName)) > 0 and BikerMissions then
+        local IsParticipant = false
+        util.spoof_script(ScriptName, function()
+            IsParticipant = NETWORK.NETWORK_IS_PLAYER_A_PARTICIPANT(PLAYER.PLAYER_ID())
+        end)
+        if IsParticipant then
+            local IsHost = false
+            util.spoof_script(ScriptName, function()
+                IsHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+                if not IsHost then
+                    NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+                end
+                IsHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+                if IsHost then
+                    NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
+                end
+            end)
+            if IsHost then
+                local PlayerPed = PLAYER.PLAYER_PED_ID()
+                local PlPos = ENTITY.GET_ENTITY_COORDS(PlayerPed)
+                if SupplyVehsT ~= nil then
+                    for i = 1, SupplyVehsArgs.MaxLen do
+                        if SupplyVehsT[i] == nil then
+                            local OldNetID = memory.read_int(memory.script_local(ScriptName, SupplyVehsArgs.LocalAddr + SupplyVehsArgs.NextLocalOffset * (i - SupplyVehsArgs.DecreaseI)))
+                            if OldNetID > 0 then
+                                local OldVehHandle = 0
+                                util.spoof_script(ScriptName, function()
+                                    OldVehHandle = NETWORK.NET_TO_VEH(OldNetID)
+                                end)
+                                if OldVehHandle ~= 0 then
+                                    if not ENTITY.IS_ENTITY_DEAD(OldVehHandle) then
+                                        local EntType = ENTITY.GET_ENTITY_TYPE(OldVehHandle)
+                                        if EntType == 2 then
+                                            local VehModelToUse = SupplyVehsArgs.SelectedVehs[math.random(#SupplyVehsArgs.SelectedVehs)]
+                                            local EntModel = ENTITY.GET_ENTITY_MODEL(OldVehHandle)
+                                            local UpgradeType = 1
+                                            local HandleToSet = 0
+                                            local OldHandleToSet = OldVehHandle
+                                            local NetIDToSet = 0
+                                            if SupplyVehsArgs.UpgradeType ~= nil then
+                                                UpgradeType = SupplyVehsArgs.UpgradeType
+                                            end
+                                            if not util.is_this_model_a_trailer(EntModel) then
+                                                if SupplyVehsArgs.DisabledVehs ~= nil then
+                                                    for k = 1, #SupplyVehsArgs.DisabledVehs do
+                                                        if EntModel == joaat(SupplyVehsArgs.DisabledVehs[k].Model1) then
+                                                            if SupplyVehsArgs.DisabledVehs[k].Model2 ~= nil then
+                                                                VehModelToUse = SupplyVehsArgs.DisabledVehs[k].Model2
+                                                                if SupplyVehsArgs.DisabledVehs[k].Model1 == SupplyVehsArgs.DisabledVehs[k].Model2 then
+                                                                    HandleToSet = OldVehHandle
+                                                                    NetIDToSet = OldNetID
+                                                                    OldHandleToSet = 0
+                                                                end
+                                                            end
+                                                            if SupplyVehsArgs.DisabledVehs[k].Upgrade ~= nil then
+                                                                UpgradeType = SupplyVehsArgs.DisabledVehs[k].Upgrade
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                                SupplyVehsT[i] = {Model = VehModelToUse, NetID = NetIDToSet, Handle = HandleToSet, OldHandle = OldHandleToSet, UpgradeType = UpgradeType, OldNetID = OldNetID, Attempts = 0}
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        if SupplyVehsT[i] ~= nil then
+                            if SupplyVehsT[i].NetID == 0 then
+                                if SupplyVehsT[i].Attempts < MaxCreateAttemps then
+                                    if not STREAMING.HAS_MODEL_LOADED(joaat(SupplyVehsT[i].Model)) then
+                                        STREAMING.REQUEST_MODEL(joaat(SupplyVehsT[i].Model))
+                                    end
+                                    if STREAMING.HAS_MODEL_LOADED(joaat(SupplyVehsT[i].Model)) then
+                                        local OldCoords = ENTITY.GET_ENTITY_COORDS(SupplyVehsT[i].OldHandle)
+                                        local OldHeading = ENTITY.GET_ENTITY_HEADING(SupplyVehsT[i].OldHandle)
+                                        local OldVelocity = ENTITY.GET_ENTITY_VELOCITY(SupplyVehsT[i].OldHandle)
+                                        local VehHandle = 0
+                                        local EntNetID = 0
+                                        util.spoof_script(ScriptName, function()
+                                            VehHandle = entities.create_vehicle(joaat(SupplyVehsT[i].Model), OldCoords, OldHeading)
+                                            EntNetID = NetworkEntityVehicle(VehHandle)
+                                        end)
+                                        if EntNetID == 0 then
+                                            NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(VehHandle)
+                                            entities.delete_by_handle(VehHandle)
+                                            SupplyVehsT[i].Attempts = SupplyVehsT[i].Attempts + 1
+                                            if SupplyVehsT[i].Attempts >= MaxCreateAttemps then
+                                                SupplyVehsT[i].NetID = SupplyVehsT[i].OldNetID
+                                                SupplyVehsT[i].Handle = SupplyVehsT[i].OldHandle
+                                                SupplyVehsT[i].OldHandle = 0
+                                                STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(SupplyVehsT[i].Model))
+                                            end
+                                        else
+                                            if SupplyVehsT[i].UpgradeType == 1 then
+                                                local VehHealth = 5000
+                                                if SupplyVehsArgs.VehHealth ~= nil then
+                                                    VehHealth = SupplyVehsArgs.VehHealth
+                                                end
+                                                if MoreSupplyVehHealth then
+                                                    VehHealth = VehHealth + 500000
+                                                end
+                                                SetSupplyVehSettings(VehHandle, VehHealth)
+                                                VEHICLE.SET_VEHICLE_COLOURS(VehHandle, math.random(0, 160), math.random(0, 160))
+                                            end
+                                            if SupplyVehsT[i].UpgradeType == 0 then
+                                                CopyVehSettingsToAnotherVeh(SupplyVehsT[i].OldHandle, VehHandle)
+                                            end
+                                            SupplyVehsT[i].NetID = EntNetID
+                                            SupplyVehsT[i].Handle = VehHandle
+                                            STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(SupplyVehsT[i].Model))
+                                            ENTITY.SET_ENTITY_VELOCITY(VehHandle, OldVelocity.x, OldVelocity.y, OldVelocity.z)
+                                        end
+                                    end
+                                end
+                            end
+                            if SupplyVehsT[i].NetID ~= 0 then
+                                memory.write_int(memory.script_local(ScriptName, SupplyVehsArgs.LocalAddr + SupplyVehsArgs.NextLocalOffset * (i - SupplyVehsArgs.DecreaseI)), SupplyVehsT[i].NetID)
+                                if SupplyVehsT[i].OldHandle ~= 0 then
+                                    for k = -1, 7 do
+                                        local Passenger = VEHICLE.GET_PED_IN_VEHICLE_SEAT(SupplyVehsT[i].OldHandle, k, false)
+                                        if Passenger ~= 0 then
+                                            if not PED.IS_PED_A_PLAYER(Passenger) then
+                                                NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(Passenger)
+                                                if VEHICLE.IS_VEHICLE_SEAT_FREE(SupplyVehsT[i].Handle, k, true) then
+                                                    PED.SET_PED_INTO_VEHICLE(Passenger, SupplyVehsT[i].Handle, k)
+                                                end
+                                            end
+                                        end
+                                    end
+                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(SupplyVehsT[i].OldHandle) then
+                                        entities.delete_by_handle(SupplyVehsT[i].OldHandle)
+                                        SupplyVehsT[i].OldHandle = 0
+                                    end
+                                end
+                            end
+                            if SupplyVehsT[i].Handle ~= 0 then
+                                if BringTargetsCloser then
+                                    if SupplyVehsArgs.BringTargets ~= nil then
+                                        local Blip = HUD.GET_BLIP_FROM_ENTITY(SupplyVehsT[i].Handle)
+                                        if Blip ~= 0 then
+                                            local BlipSprite = HUD.GET_BLIP_SPRITE(Blip)
+                                            local BlipColor = HUD.GET_BLIP_COLOUR(Blip)
+                                            if BlipSprite == 429 then
+                                                if BlipColor == 1 or BlipColor == 59 then
+                                                    if not ENTITY.IS_ENTITY_AT_ENTITY(SupplyVehsT[i].Handle, PlayerPed, SupplyVehsArgs.BringTargets, SupplyVehsArgs.BringTargets, SupplyVehsArgs.BringTargets, false, true, 0) then
+                                                        local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, SupplyVehsArgs.BringTargets)
+                                                        if FoundCoords then
+                                                            if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                                if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(SupplyVehsT[i].Handle) then
+                                                                    ENTITY.SET_ENTITY_COORDS(SupplyVehsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                                    ENTITY.SET_ENTITY_HEADING(SupplyVehsT[i].Handle, OutHeading)
+                                                                end
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                                if BringMissionCloser then
+                                    if not ENTITY.IS_ENTITY_AT_ENTITY(SupplyVehsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
+                                        local CanSetCoords = true
+                                        local Ped = VEHICLE.GET_PED_IN_VEHICLE_SEAT(SupplyVehsT[i].Handle, -1, false)
+                                        if Ped ~= 0 then
+                                            if not PED.IS_PED_A_PLAYER(Ped) then
+                                                CanSetCoords = false
+                                            end
+                                        end
+                                        if CanSetCoords then
+                                            local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                            if FoundCoords then
+                                                if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(SupplyVehsT[i].Handle) then
+                                                        ENTITY.SET_ENTITY_COORDS(SupplyVehsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                        ENTITY.SET_ENTITY_HEADING(SupplyVehsT[i].Handle, OutHeading)
+                                                    end
+                                                end
+                                            end
+                                            if AddBlipForBringedEntity then
+                                                local Blip = HUD.GET_BLIP_FROM_ENTITY(SupplyVehsT[i].Handle)
+                                                if Blip == 0 then
+                                                    Blip = HUD.ADD_BLIP_FOR_ENTITY(SupplyVehsT[i].Handle)
+                                                    HUD.SET_BLIP_SPRITE(Blip, 0)
+                                                    HUD.SET_BLIP_COLOUR(Blip, 3)
+                                                    SupplyVehsT[i].BlipHandle = Blip
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                                if ENTITY.IS_ENTITY_DEAD(SupplyVehsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(SupplyVehsT[i].Handle) or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(SupplyVehsT[i].Handle) then
+                                    if SupplyVehsT[i].BlipHandle ~= nil then
+                                        util.remove_blip(SupplyVehsT[i].BlipHandle)
+                                    end
+                                    SupplyVehsT[i] = nil
+                                end
+                            end
+                        end
+                    end
+                end
+                if VehsT ~= nil then
+                    for i = 1, VehsArgs.MaxLen do
+                        if VehsT[i] == nil then
+                            local OldNetID = memory.read_int(memory.script_local(ScriptName, VehsArgs.LocalAddr + VehsArgs.NextLocalOffset * (i - VehsArgs.DecreaseI)))
+                            if OldNetID > 0 then
+                                local OldVehHandle = 0
+                                util.spoof_script(ScriptName, function()
+                                    OldVehHandle = NETWORK.NET_TO_VEH(OldNetID)
+                                end)
+                                if OldVehHandle ~= 0 then
+                                    if not ENTITY.IS_ENTITY_DEAD(OldVehHandle) then
+                                        local EntType = ENTITY.GET_ENTITY_TYPE(OldVehHandle)
+                                        if EntType == 2 then
+                                            local VehModelToUse = VehsArgs.SelectedVehs[math.random(#VehsArgs.SelectedVehs)]
+                                            local EntModel = ENTITY.GET_ENTITY_MODEL(OldVehHandle)
+                                            local UpgradeType = 1
+                                            local HandleToSet = 0
+                                            local NetIDToSet = 0
+                                            local OldHandleToSet = OldVehHandle
+                                            if VehsArgs.UpgradeType ~= nil then
+                                                UpgradeType = VehsArgs.UpgradeType
+                                            end
+                                            if not util.is_this_model_a_trailer(EntModel) then
+                                                if VehsArgs.DisabledVehs ~= nil then
+                                                    for k = 1, #VehsArgs.DisabledVehs do
+                                                        if EntModel == joaat(VehsArgs.DisabledVehs[k].Model1) then
+                                                            if VehsArgs.DisabledVehs[k].Model2 ~= nil then
+                                                                VehModelToUse = VehsArgs.DisabledVehs[k].Model2
+                                                                if VehsArgs.DisabledVehs[k].Model1 == VehsArgs.DisabledVehs[k].Model2 then
+                                                                    HandleToSet = OldVehHandle
+                                                                    NetIDToSet = OldNetID
+                                                                    OldHandleToSet = 0
+                                                                end
+                                                            end
+                                                            if VehsArgs.DisabledVehs[k].Upgrade ~= nil then
+                                                                UpgradeType = VehsArgs.DisabledVehs[k].Upgrade
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                                VehsT[i] = {Model = VehModelToUse, NetID = NetIDToSet, Handle = HandleToSet, OldHandle = OldHandleToSet, UpgradeType = UpgradeType, OldNetID = OldNetID, Attempts = 0}
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        if VehsT[i] ~= nil then
+                            if VehsT[i].NetID == 0 then
+                                if VehsT[i].Attempts < MaxCreateAttemps then
+                                    if not STREAMING.HAS_MODEL_LOADED(joaat(VehsT[i].Model)) then
+                                        STREAMING.REQUEST_MODEL(joaat(VehsT[i].Model))
+                                    end
+                                    if STREAMING.HAS_MODEL_LOADED(joaat(VehsT[i].Model)) then
+                                        local OldCoords = ENTITY.GET_ENTITY_COORDS(VehsT[i].OldHandle)
+                                        local OldHeading = ENTITY.GET_ENTITY_HEADING(VehsT[i].OldHandle)
+                                        local OldVelocity = ENTITY.GET_ENTITY_VELOCITY(VehsT[i].OldHandle)
+                                        local VehHandle = 0
+                                        local EntNetID = 0
+                                        util.spoof_script(ScriptName, function()
+                                            VehHandle = entities.create_vehicle(joaat(VehsT[i].Model), OldCoords, OldHeading)
+                                            EntNetID = NetworkEntityVehicle(VehHandle)
+                                        end)
+                                        if EntNetID == 0 then
+                                            NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(VehHandle)
+                                            entities.delete_by_handle(VehHandle)
+                                            VehsT[i].Attempts = VehsT[i].Attempts + 1
+                                            if VehsT[i].Attempts >= MaxCreateAttemps then
+                                                VehsT[i].NetID = VehsT[i].OldNetID
+                                                VehsT[i].Handle = VehsT[i].OldHandle
+                                                VehsT[i].OldHandle = 0
+                                                STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(VehsT[i].Model))
+                                            end
+                                        else
+                                            if VehsT[i].UpgradeType == 1 then
+                                                local VehHealth = 5000
+                                                if VehsArgs.VehHealth ~= nil then
+                                                    VehHealth = VehsArgs.VehHealth
+                                                end
+                                                if MoreSupplyVehHealth then
+                                                    VehHealth = VehHealth + 500000
+                                                end
+                                                SetSupplyVehSettings(VehHandle, VehHealth)
+                                                VEHICLE.SET_VEHICLE_COLOURS(VehHandle, math.random(0, 160), math.random(0, 160))
+                                            end
+                                            if VehsT[i].UpgradeType == 0 then
+                                                CopyVehSettingsToAnotherVeh(VehsT[i].OldHandle, VehHandle)
+                                            end
+                                            VehsT[i].NetID = EntNetID
+                                            VehsT[i].Handle = VehHandle
+                                            STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(VehsT[i].Model))
+                                            ENTITY.SET_ENTITY_VELOCITY(VehHandle, OldVelocity.x, OldVelocity.y, OldVelocity.z)
+                                        end
+                                    end
+                                end
+                            end
+                            if VehsT[i].NetID ~= 0 then
+                                memory.write_int(memory.script_local(ScriptName, VehsArgs.LocalAddr + VehsArgs.NextLocalOffset * (i - VehsArgs.DecreaseI)), VehsT[i].NetID)
+                                if VehsT[i].OldHandle ~= 0 then
+                                    for k = -1, 7 do
+                                        local Passenger = VEHICLE.GET_PED_IN_VEHICLE_SEAT(VehsT[i].OldHandle, k, false)
+                                        if Passenger ~= 0 then
+                                            if not PED.IS_PED_A_PLAYER(Passenger) then
+                                                NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(Passenger)
+                                                if VEHICLE.IS_VEHICLE_SEAT_FREE(VehsT[i].Handle, k, true) then
+                                                    PED.SET_PED_INTO_VEHICLE(Passenger, VehsT[i].Handle, k)
+                                                end
+                                            end
+                                        end
+                                    end
+                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(VehsT[i].OldHandle) then
+                                        entities.delete_by_handle(VehsT[i].OldHandle)
+                                        VehsT[i].OldHandle = 0
+                                    end
+                                end
+                            end
+                            if VehsT[i].Handle ~= 0 then
+                                if BringTargetsCloser then
+                                    if VehsArgs.BringTargets ~= nil then
+                                        local Blip = HUD.GET_BLIP_FROM_ENTITY(VehsT[i].Handle)
+                                        if Blip ~= 0 then
+                                            local BlipSprite = HUD.GET_BLIP_SPRITE(Blip)
+                                            local BlipColor = HUD.GET_BLIP_COLOUR(Blip)
+                                            if BlipSprite == 429 then
+                                                if BlipColor == 1 or BlipColor == 59 then
+                                                    if not ENTITY.IS_ENTITY_AT_ENTITY(VehsT[i].Handle, PlayerPed, VehsArgs.BringTargets, VehsArgs.BringTargets, VehsArgs.BringTargets, false, true, 0) then
+                                                        local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, VehsArgs.BringTargets)
+                                                        if FoundCoords then
+                                                            if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                                if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(VehsT[i].Handle) then
+                                                                    ENTITY.SET_ENTITY_COORDS(VehsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                                    ENTITY.SET_ENTITY_HEADING(VehsT[i].Handle, OutHeading)
+                                                                end
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                                if BringMissionCloser then
+                                    if not ENTITY.IS_ENTITY_AT_ENTITY(VehsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
+                                        local CanSetCoords = true
+                                        local Ped = VEHICLE.GET_PED_IN_VEHICLE_SEAT(VehsT[i].Handle, -1, false)
+                                        if Ped ~= 0 then
+                                            if not PED.IS_PED_A_PLAYER(Ped) then
+                                                CanSetCoords = false
+                                            end
+                                        end
+                                        if CanSetCoords then
+                                            local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                            if FoundCoords then
+                                                if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 1.0, false, true, true, true, false, 0, true) then
+                                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(VehsT[i].Handle) then
+                                                        ENTITY.SET_ENTITY_COORDS(VehsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                        ENTITY.SET_ENTITY_HEADING(VehsT[i].Handle, OutHeading)
+                                                    end
+                                                end
+                                            end
+                                            if AddBlipForBringedEntity then
+                                                local Blip = HUD.GET_BLIP_FROM_ENTITY(VehsT[i].Handle)
+                                                if Blip == 0 then
+                                                    Blip = HUD.ADD_BLIP_FOR_ENTITY(VehsT[i].Handle)
+                                                    HUD.SET_BLIP_SPRITE(Blip, 0)
+                                                    HUD.SET_BLIP_COLOUR(Blip, 1)
+                                                    VehsT[i].BlipHandle = Blip
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                                if ENTITY.IS_ENTITY_DEAD(VehsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(VehsT[i].Handle) or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(VehsT[i].Handle) then
+                                    if VehsT[i].BlipHandle ~= nil then
+                                        util.remove_blip(VehsT[i].BlipHandle)
+                                    end
+                                    VehsT[i] = nil
+                                end
+                            end
+                        end
+                    end
+                end
+                if PedsT ~= nil then
+                    for i = 1, PedsArgs.MaxLen do
+                        if PedsT[i] == nil then
+                            local OldNetID = memory.read_int(memory.script_local(ScriptName, PedsArgs.LocalAddr + PedsArgs.NextLocalOffset * (i - PedsArgs.DecreaseI)))
+                            if OldNetID > 0 then
+                                local OldPedHandle = 0
+                                util.spoof_script(ScriptName, function()
+                                    OldPedHandle = NETWORK.NET_TO_PED(OldNetID)
+                                end)
+                                if OldPedHandle ~= 0 then
+                                    if not ENTITY.IS_ENTITY_DEAD(OldPedHandle) and ENTITY.IS_ENTITY_A_MISSION_ENTITY(OldPedHandle) then
+                                        local PedModelToUse = Peds_Models_List[math.random(#Peds_Models_List)]
+                                        local PedVeh = PED.GET_VEHICLE_PED_IS_IN(OldPedHandle, false)
+                                        local SeatIndex = -2
+                                        local PedSetts = 0
+                                        if PedsArgs.PedSetts ~= nil then
+                                            PedSetts = PedsArgs.PedSetts
+                                        end
+                                        if PedVeh ~= 0 then
+                                            for k = -1, 7 do
+                                                local Passenger = VEHICLE.GET_PED_IN_VEHICLE_SEAT(PedVeh, k, false)
+                                                if Passenger == OldPedHandle then
+                                                    SeatIndex = k
+                                                end
+                                            end
+                                            TASK.TASK_LEAVE_VEHICLE(OldPedHandle, PedVeh, 16)
+                                        end
+                                        local PedType = PED.GET_PED_TYPE(OldPedHandle)
+                                        PedsT[i] = {Model = PedModelToUse, NetID = 0, Handle = 0, OldHandle = OldPedHandle, OldVeh = PedVeh, SeatIndex = SeatIndex, PedType = PedType, PedSetts = PedSetts, OldNetID = OldNetID, Attempts = 0}
+                                    end
+                                end
+                            end
+                        end
+                        if PedsT[i] ~= nil then
+                            if PedsT[i].NetID == 0 then
+                                if PedsT[i].Attempts < MaxCreateAttemps then
+                                    if not STREAMING.HAS_MODEL_LOADED(joaat(PedsT[i].Model)) then
+                                        STREAMING.REQUEST_MODEL(joaat(PedsT[i].Model))
+                                    end
+                                    if STREAMING.HAS_MODEL_LOADED(joaat(PedsT[i].Model)) then
+                                        local PedType = PedsT[i].PedType
+                                        if PedsT[i].OldVeh ~= 0 and PedsT[i].SeatIndex ~= -2 then
+                                            local PedHandle = 0
+                                            local EntNetID = 0
+                                            util.spoof_script(ScriptName, function()
+                                                PedHandle = PED.CREATE_PED_INSIDE_VEHICLE(PedsT[i].OldVeh, PedType, joaat(PedsT[i].Model), PedsT[i].SeatIndex, true, true)
+                                                EntNetID = NetworkEntityPed(PedHandle)
+                                            end)
+                                            if EntNetID == 0 then
+                                                NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(PedHandle)
+                                                entities.delete_by_handle(PedHandle)
+                                                PedsT[i].Attempts = PedsT[i].Attempts + 1
+                                                if PedsT[i].Attempts >= MaxCreateAttemps then
+                                                    PedsT[i].NetID = PedsT[i].OldNetID
+                                                    PedsT[i].Handle = PedsT[i].OldHandle
+                                                    PedsT[i].OldHandle = 0
+                                                    STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(PedsT[i].Model))
+                                                end
+                                            else
+                                                PedsT[i].NetID = EntNetID
+                                                PedsT[i].Handle = PedHandle
+                                                STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(PedsT[i].Model))
+                                                local RelHash = PED.GET_PED_RELATIONSHIP_GROUP_HASH(PedsT[i].OldHandle)
+                                                PED.SET_PED_RELATIONSHIP_GROUP_HASH(PedHandle, RelHash)
+                                                if PedsT[i].PedSetts == 0 then
+                                                    local MaxHealth = ENTITY.GET_ENTITY_MAX_HEALTH(PedsT[i].OldHandle)
+                                                    local Health = ENTITY.GET_ENTITY_HEALTH(PedsT[i].OldHandle)
+                                                    ENTITY.SET_ENTITY_MAX_HEALTH(PedHandle, MaxHealth)
+                                                    ENTITY.SET_ENTITY_HEALTH(PedHandle, Health)
+                                                end
+                                                if PedsT[i].PedSetts == 1 then
+                                                    CopyPedSettsToPed(PedsT[i].OldHandle, PedHandle)
+                                                    PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
+                                                    PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 17, false)
+                                                end
+                                                if PedsT[i].PedSetts == 2 then
+                                                    CopyPedSettsToPed(PedsT[i].OldHandle, PedHandle)
+                                                    SetRandomPedSetts(PedHandle)
+                                                end
+                                                if PedsT[i].PedSetts == 3 then
+                                                    CopyPedSettsToPed(PedsT[i].OldHandle, PedHandle)
+                                                    WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat(WeapsList[math.random(#WeapsList)]), 99999, false, true)
+                                                    PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
+                                                    PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, 17)
+                                                end
+                                            end
+                                        else
+                                            local OldCoords = ENTITY.GET_ENTITY_COORDS(PedsT[i].OldHandle)
+                                            local OldHeading = ENTITY.GET_ENTITY_HEADING(PedsT[i].OldHandle)
+                                            local OldVelocity = ENTITY.GET_ENTITY_VELOCITY(PedsT[i].OldHandle)
+                                            local PedHandle = 0
+                                            local EntNetID = 0
+                                            util.spoof_script(ScriptName, function()
+                                                PedHandle = entities.create_ped(PedType, joaat(PedsT[i].Model), OldCoords, OldHeading)
+                                                EntNetID = NetworkEntityPed(PedHandle)
+                                            end)
+                                            if EntNetID == 0 then
+                                                NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(PedHandle)
+                                                entities.delete_by_handle(PedHandle)
+                                            else
+                                                PedsT[i].NetID = EntNetID
+                                                PedsT[i].Handle = PedHandle
+                                                STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(PedsT[i].Model))
+                                                ENTITY.SET_ENTITY_VELOCITY(PedHandle, OldVelocity.x, OldVelocity.y, OldVelocity.z)
+                                                local RelHash = PED.GET_PED_RELATIONSHIP_GROUP_HASH(PedsT[i].OldHandle)
+                                                PED.SET_PED_RELATIONSHIP_GROUP_HASH(PedHandle, RelHash)
+                                                if PedsT[i].PedSetts == 0 then
+                                                    local MaxHealth = ENTITY.GET_ENTITY_MAX_HEALTH(PedsT[i].OldHandle)
+                                                    local Health = ENTITY.GET_ENTITY_HEALTH(PedsT[i].OldHandle)
+                                                    ENTITY.SET_ENTITY_MAX_HEALTH(PedHandle, MaxHealth)
+                                                    ENTITY.SET_ENTITY_HEALTH(PedHandle, Health)
+                                                end
+                                                if PedsT[i].PedSetts == 1 then
+                                                    CopyPedSettsToPed(PedsT[i].OldHandle, PedHandle)
+                                                    PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
+                                                    PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 17, false)
+                                                end
+                                                if PedsT[i].PedSetts == 2 then
+                                                    CopyPedSettsToPed(PedsT[i].OldHandle, PedHandle)
+                                                    SetRandomPedSetts(PedHandle)
+                                                end
+                                                if PedsT[i].PedSetts == 3 then
+                                                    CopyPedSettsToPed(PedsT[i].OldHandle, PedHandle)
+                                                    WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat(WeapsList[math.random(#WeapsList)]), 99999, false, true)
+                                                    PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
+                                                    PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, 17)
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                            if PedsT[i].NetID ~= 0 then
+                                memory.write_int(memory.script_local(ScriptName, PedsArgs.LocalAddr + PedsArgs.NextLocalOffset * (i - PedsArgs.DecreaseI)), PedsT[i].NetID)
+                                if PedsT[i].OldHandle ~= 0 then
+                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(PedsT[i].OldHandle) then
+                                        entities.delete_by_handle(PedsT[i].OldHandle)
+                                        PedsT[i].OldHandle = 0
+                                    end
+                                end
+                            end
+                            if PedsT[i].Handle ~= 0 then
+                                if BringTargetsCloser then
+                                    if PedsArgs.BringTargets ~= nil then
+                                        local Blip = HUD.GET_BLIP_FROM_ENTITY(PedsT[i].Handle)
+                                        if Blip ~= 0 then
+                                            local BlipSprite = HUD.GET_BLIP_SPRITE(Blip)
+                                            local BlipColor = HUD.GET_BLIP_COLOUR(Blip)
+                                            if BlipSprite == 432 or BlipSprite == 429 then
+                                                if BlipColor == 1 or BlipColor == 59 then
+                                                    if not ENTITY.IS_ENTITY_AT_ENTITY(PedsT[i].Handle, PlayerPed, PedsArgs.BringTargets, PedsArgs.BringTargets, PedsArgs.BringTargets, false, true, 0) then
+                                                        if PED.IS_PED_IN_ANY_VEHICLE(PedsT[i].Handle, false) then
+                                                            local Veh = PED.GET_VEHICLE_PED_IS_IN(PedsT[i].Handle, false)
+                                                            if Veh ~= 0 then
+                                                                local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, PedsArgs.BringTargets)
+                                                                if FoundCoords then
+                                                                    if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 1.0, false, true, true, true, false, 0, true) then
+                                                                        if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(Veh) then
+                                                                            ENTITY.SET_ENTITY_COORDS(Veh, OutPos.x, OutPos.y, OutPos.z)
+                                                                            ENTITY.SET_ENTITY_HEADING(Veh, OutHeading)
+                                                                        end
+                                                                    end
+                                                                end
+                                                            end
+                                                        else
+                                                            local OutPos, FoundCoords = FindRightSpawnPed(PlPos.x, PlPos.y, PlPos.z, 10, PedsArgs.BringTargets)
+                                                            if FoundCoords then
+                                                                if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(PedsT[i].Handle) then
+                                                                    ENTITY.SET_ENTITY_COORDS(PedsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                                end
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                                if BringMissionCloser then
+                                    if not ENTITY.IS_ENTITY_AT_ENTITY(PedsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
+                                        if PED.IS_PED_IN_ANY_VEHICLE(PedsT[i].Handle, false) then
+                                            local Veh = PED.GET_VEHICLE_PED_IS_IN(PedsT[i].Handle, false)
+                                            if Veh ~= 0 then
+                                                local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                                if FoundCoords then
+                                                    if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                        if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(Veh) then
+                                                            ENTITY.SET_ENTITY_COORDS(Veh, OutPos.x, OutPos.y, OutPos.z)
+                                                            ENTITY.SET_ENTITY_HEADING(Veh, OutHeading)
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        else
+                                            local OutPos, FoundCoords = FindRightSpawnPed(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                            if FoundCoords then
+                                                if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(PedsT[i].Handle) then
+                                                    ENTITY.SET_ENTITY_COORDS(PedsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                                if ENTITY.IS_ENTITY_DEAD(PedsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(PedsT[i].Handle) or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(PedsT[i].Handle) then
+                                    if PedsT[i].BlipHandle ~= nil then
+                                        util.remove_blip(PedsT[i].BlipHandle)
+                                    end
+                                    PedsT[i] = nil
+                                end
+                            end
+                        end
+                    end
+                end
+                if ObjectsT ~= nil then
+                    for i = 1, ObjectsArgs.MaxLen do
+                        if SpawnObjectsT ~= nil then
+                            if CreateSupplies then
+                                if SpawnObjectsT[i] == nil then
+                                    local OldNetID = memory.read_int(memory.script_local(ScriptName, ObjectsArgs.LocalAddr + ObjectsArgs.NextLocalOffset * (i - ObjectsArgs.DecreaseI)))
+                                    if OldNetID == 0 then
+                                        local ObjModelToUse = ObjectsArgs.SelectedVehs[math.random(#ObjectsArgs.SelectedVehs)]
+                                        SpawnObjectsT[i] = {}
+                                        SpawnObjectsT[i].Tick = 0
+                                        SpawnObjectsT[i].Model = ObjModelToUse
+                                    end
+                                end
+                                if SpawnObjectsT[i] ~= nil then
+                                    local OldNetID = memory.read_int(memory.script_local(ScriptName, ObjectsArgs.LocalAddr + ObjectsArgs.NextLocalOffset * (i - ObjectsArgs.DecreaseI)))
+                                    if OldNetID == 0 then
+                                        SpawnObjectsT[i].Tick = SpawnObjectsT[i].Tick + 1
+                                        if SpawnObjectsT[i].Tick > MaxZeroTick then
+                                            ObjectsT[i] = {Model = SpawnObjectsT[i].Model, NetID = 0, Handle = 0, OldHandle = 0, OldNetID = 0, Attempts = 0}
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        if ObjectsT[i] == nil then
+                            local OldNetID = memory.read_int(memory.script_local(ScriptName, ObjectsArgs.LocalAddr + ObjectsArgs.NextLocalOffset * (i - ObjectsArgs.DecreaseI)))
+                            if OldNetID > 0 then
+                                local OldObjHandle = 0
+                                util.spoof_script(ScriptName, function()
+                                    OldObjHandle = NETWORK.NET_TO_OBJ(OldNetID)
+                                end)
+                                if OldObjHandle ~= 0 then
+                                    local EntType = ENTITY.GET_ENTITY_TYPE(OldObjHandle)
+                                    if EntType == 3 then
+                                        if not ENTITY.IS_ENTITY_ATTACHED_TO_ANY_PED(OldObjHandle) then
+                                            --if OBJECT.IS_OBJECT_A_PORTABLE_PICKUP(OldObjHandle) then
+                                                local ObjModelToUse = ObjectsArgs.SelectedVehs[math.random(#ObjectsArgs.SelectedVehs)]
+                                                local HandleToSet = 0
+                                                local OldHandleToSet = OldObjHandle
+                                                local NetIDToSet = 0
+                                                if ObjectsArgs.DisabledVehs ~= nil then
+                                                    local EntModel = ENTITY.GET_ENTITY_MODEL(OldObjHandle)
+                                                    for k = 1, #ObjectsArgs.DisabledVehs do
+                                                        if EntModel == joaat(ObjectsArgs.DisabledVehs[k].Model1) then
+                                                            if ObjectsArgs.DisabledVehs[k].Model2 ~= nil then
+                                                                ObjModelToUse = ObjectsArgs.DisabledVehs[k].Model2
+                                                                if ObjectsArgs.DisabledVehs[k].Model1 == ObjectsArgs.DisabledVehs[k].Model2 then
+                                                                    HandleToSet = OldObjHandle
+                                                                    NetIDToSet = OldNetID
+                                                                    OldHandleToSet = 0
+                                                                end
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                                ObjectsT[i] = {Model = ObjModelToUse, NetID = NetIDToSet, Handle = HandleToSet, OldHandle = OldHandleToSet, OldNetID = OldNetID, Attempts = 0}
+                                            --end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        if ObjectsT[i] ~= nil then
+                            if ObjectsT[i].NetID == 0 then
+                                if ObjectsT[i].Attempts < MaxCreateAttemps then
+                                    if not STREAMING.HAS_MODEL_LOADED(joaat(ObjectsT[i].Model)) then
+                                        STREAMING.REQUEST_MODEL(joaat(ObjectsT[i].Model))
+                                    end
+                                    if STREAMING.HAS_MODEL_LOADED(joaat(ObjectsT[i].Model)) then
+                                        local OldCoords = nil
+                                        local OldHeading = nil
+                                        if ObjectsT[i].OldHandle ~= 0 then
+                                            OldCoords = ENTITY.GET_ENTITY_COORDS(ObjectsT[i].OldHandle)
+                                            OldHeading = ENTITY.GET_ENTITY_HEADING(ObjectsT[i].OldHandle)
+                                        else
+                                            OldCoords = ENTITY.GET_ENTITY_COORDS(PlayerPed)
+                                            OldHeading = ENTITY.GET_ENTITY_HEADING(PlayerPed)
+                                            local FVect = ENTITY.GET_ENTITY_FORWARD_VECTOR(PlayerPed)
+                                            OldCoords.x = OldCoords.x + FVect.x * 10.0
+                                            OldCoords.y = OldCoords.y + FVect.y * 10.0
+                                            OldCoords.z = OldCoords.z + FVect.z * 10.0
+                                        end
+                                        --local OldCoords = ENTITY.GET_ENTITY_COORDS(ObjectsT[i].OldHandle)
+                                        --local OldHeading = ENTITY.GET_ENTITY_HEADING(ObjectsT[i].OldHandle)
+                                        local ObjHandle = 0
+                                        local EntNetID = 0
+                                        util.spoof_script(ScriptName, function()
+                                            ObjHandle = OBJECT.CREATE_PORTABLE_PICKUP(joaat("PICKUP_PORTABLE_CRATE_FIXED_INCAR"), OldCoords.x, OldCoords.y, OldCoords.z, true, joaat(ObjectsT[i].Model))
+                                            EntNetID = NetworkEntityVehicle(ObjHandle)
+                                        end)
+                                        if EntNetID == 0 then
+                                            NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ObjHandle)
+                                            entities.delete_by_handle(ObjHandle)
+                                            STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(ObjectsT[i].Model))
+                                            ObjectsT[i].Attempts = ObjectsT[i].Attempts + 1
+                                            if ObjectsT[i].Attempts >= MaxCreateAttemps then
+                                                ObjectsT[i].NetID = ObjectsT[i].OldNetID
+                                                ObjectsT[i].Handle = ObjectsT[i].OldHandle
+                                                ObjectsT[i].OldHandle = 0
+                                                STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(ObjectsT[i].Model))
+                                            end
+                                        else
+                                            ObjectsT[i].NetID = EntNetID
+                                            ObjectsT[i].Handle = ObjHandle
+                                            STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(ObjectsT[i].Model))
+                                            ENTITY.SET_ENTITY_HEADING(ObjHandle, OldHeading)
+                                        end
+                                    end
+                                end
+                            end
+                            if ObjectsT[i].NetID ~= 0 then
+                                memory.write_int(memory.script_local(ScriptName, ObjectsArgs.LocalAddr + ObjectsArgs.NextLocalOffset * (i - ObjectsArgs.DecreaseI)), ObjectsT[i].NetID)
+                                if ObjectsT[i].OldHandle ~= 0 then
+                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ObjectsT[i].OldHandle) then
+                                        entities.delete_by_handle(ObjectsT[i].OldHandle)
+                                        ObjectsT[i].OldHandle = 0
+                                    end
+                                end
+                            end
+                            if ObjectsT[i].Handle ~= 0 then
+                                if BringMissionCloser then
+                                    if not ENTITY.IS_ENTITY_AT_ENTITY(ObjectsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
+                                        local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                        if FoundCoords then
+                                            if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ObjectsT[i].Handle) then
+                                                    ENTITY.SET_ENTITY_COORDS(ObjectsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                    ENTITY.SET_ENTITY_HEADING(ObjectsT[i].Handle, OutHeading)
+                                                end
+                                            end
+                                        end
+                                        if AddBlipForBringedEntity then
+                                            local Blip = HUD.GET_BLIP_FROM_ENTITY(ObjectsT[i].Handle)
+                                            if Blip == 0 then
+                                                Blip = HUD.ADD_BLIP_FOR_ENTITY(ObjectsT[i].Handle)
+                                                HUD.SET_BLIP_SPRITE(Blip, 586)
+                                                HUD.SET_BLIP_COLOUR(Blip, 2)
+                                                ObjectsT[i].BlipHandle = Blip
+                                            end
+                                        end
+                                    end
+                                end
+                                if ENTITY.IS_ENTITY_DEAD(ObjectsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ObjectsT[i].Handle) or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ObjectsT[i].Handle) then
+                                    if ObjectsT[i].BlipHandle ~= nil then
+                                        util.remove_blip(ObjectsT[i].BlipHandle)
+                                    end
+                                    ObjectsT[i] = nil
+                                end
+                            end
+                        end
+                    end
+                end
+                if PropsT ~= nil then
+                    for i = 1, BringPropsArgs.MaxLen do
+                        if PropsT[i] == nil then
+                            local OldNetID = memory.read_int(memory.script_local(ScriptName, BringPropsArgs.LocalAddr + BringPropsArgs.NextLocalOffset * (i - BringPropsArgs.DecreaseI)))
+                            if OldNetID > 0 then
+                                local OldObjHandle = 0
+                                util.spoof_script(ScriptName, function()
+                                    OldObjHandle = NETWORK.NET_TO_OBJ(OldNetID)
+                                end)
+                                if OldObjHandle ~= 0 then
+                                    local EntType = ENTITY.GET_ENTITY_TYPE(OldObjHandle)
+                                    if EntType == 3 then
+                                        PropsT[i] = {Handle = OldObjHandle}
+                                    end
+                                end
+                            end
+                        end
+                        if PropsT[i] ~= nil then
+                            if PropsT[i].Handle ~= 0 then
+                                if not ENTITY.IS_ENTITY_AT_ENTITY(PropsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
+                                    local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                    if FoundCoords then
+                                        if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                            if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(PropsT[i].Handle) then
+                                                ENTITY.SET_ENTITY_COORDS(PropsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                ENTITY.SET_ENTITY_HEADING(PropsT[i].Handle, OutHeading)
+                                            end
+                                        end
+                                    end
+                                end
+                                if ENTITY.IS_ENTITY_DEAD(PropsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(PropsT[i].Handle) then
+                                    PropsT[i] = nil
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        else
+            if SupplyVehsT ~= nil then
+                for i = 1, SupplyVehsArgs.MaxLen do
+                    if SupplyVehsT[i] ~= nil then
+                        if SupplyVehsT[i].BlipHandle ~= nil then
+                            util.remove_blip(SupplyVehsT[i].BlipHandle)
+                        end
+                        SupplyVehsT[i] = nil
+                    end
+                end
+            end
+            if VehsT ~= nil then
+                for i = 1, VehsArgs.MaxLen do
+                    if VehsT[i] ~= nil then
+                        if VehsT[i].BlipHandle ~= nil then
+                            util.remove_blip(VehsT[i].BlipHandle)
+                        end
+                        VehsT[i] = nil
+                    end
+                end
+            end
+            if PedsT ~= nil then
+                for i = 1, PedsArgs.MaxLen do
+                    if PedsT[i] ~= nil then
+                        if PedsT[i].BlipHandle ~= nil then
+                            util.remove_blip(PedsT[i].BlipHandle)
+                        end
+                        PedsT[i] = nil
+                    end
+                end
+            end
+            if ObjectsT ~= nil then
+                for i = 1, ObjectsArgs.MaxLen do
+                    if ObjectsT[i] ~= nil then
+                        if ObjectsT[i].BlipHandle ~= nil then
+                            util.remove_blip(ObjectsT[i].BlipHandle)
+                        end
+                        ObjectsT[i] = nil
+                    end
+                end
+            end
+            if SpawnObjectsT ~= nil then
+                for i = 1, ObjectsArgs.MaxLen do
+                    SpawnObjectsT[i] = nil
+                end
+            end
+        end
+    end
+end
+
+function FindRightSpawnVeh(PosX, PosY, PosZ, MinDist, MaxDist)
+	local OutPos = v3.new()
+	local OutHeading = memory.alloc(4)
+	local FoundCoord = PATHFIND.GET_CLOSEST_VEHICLE_NODE_WITH_HEADING(PosX + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosY + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosZ, OutPos, OutHeading, 0, 3, 0)
+	return OutPos, memory.read_float(OutHeading), FoundCoord
+end
+
+function FindRightSpawnPed(PosX, PosY, PosZ, MinDist, MaxDist)
+	local OutPos = v3.new()
+	local FoundCoord = PATHFIND.GET_SAFE_COORD_FOR_PED(PosX + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosY + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosZ, false, OutPos, 16)
+	return OutPos, FoundCoord
+end
+
+function CopyPedSettsToPed(Ped, ToPed)
+    local Accuracy = PED.GET_PED_ACCURACY(Ped)
+    local Armour = PED.GET_PED_ARMOUR(Ped)
+    local CMovement = PED.GET_PED_COMBAT_MOVEMENT(Ped)
+    local CAngle = PED.GET_PED_VISUAL_FIELD_CENTER_ANGLE(Ped)
+    PED.SET_PED_ACCURACY(ToPed, Accuracy)
+    PED.SET_PED_ARMOUR(ToPed, Armour)
+    PED.SET_PED_COMBAT_MOVEMENT(ToPed, CMovement)
+    PED.SET_PED_VISUAL_FIELD_CENTER_ANGLE(ToPed, CAngle)
+    local MaxHealth = ENTITY.GET_ENTITY_MAX_HEALTH(Ped)
+	local Health = ENTITY.GET_ENTITY_HEALTH(Ped)
+    ENTITY.SET_ENTITY_MAX_HEALTH(ToPed, MaxHealth)
+	ENTITY.SET_ENTITY_HEALTH(ToPed, Health)
+    for i = 0, 27 do
+        local CombatFloat = PED.GET_COMBAT_FLOAT(Ped, i)
+        PED.SET_COMBAT_FLOAT(Ped, i, CombatFloat)
+    end
+    for i = 20, 461 do
+        local Flag = PED.GET_PED_CONFIG_FLAG(Ped, i, true)
+        PED.SET_PED_CONFIG_FLAG(ToPed, i, Flag)
+    end
+    local BestWeap = WEAPON.GET_BEST_PED_WEAPON(Ped, false)
+    if BestWeap ~= 0 then
+        WEAPON.GIVE_WEAPON_TO_PED(ToPed, BestWeap, 99999, false, true)
+    end
+end
+
+function SetRandomPedSetts(Ped)
+    for i = 0, 90 do
+        local Bool = false
+        if math.random(0, 1) == 1 then
+            Bool = true
+        end
+        if i == 5 then
+            Bool = true
+        end
+        if i == 6 or i == 17 then
+            Bool = false
+        end
+        PED.SET_PED_COMBAT_ATTRIBUTES(Ped, i, Bool)
+    end
+    WEAPON.GIVE_WEAPON_TO_PED(Ped, WeapsList[math.random(#WeapsList)], 99999, false, true)
+end
+
+util.create_tick_handler(function()
+	return true
+end)

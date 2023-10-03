@@ -20,103 +20,11 @@ Wait = util.yield
 joaat = util.joaat
 Print = util.toast
 
-function CreateArgsT(MaxLen, LocalAddr, NextLocalOffset, DecreaseI, SelectedVehs, DisabledVehs, UpgradeType, PedSetts, BringTargets, VehHealth)
-    local ArgsT = {}
-    ArgsT.MaxLen = MaxLen
-    ArgsT.LocalAddr = LocalAddr
-    ArgsT.NextLocalOffset = NextLocalOffset
-    ArgsT.DecreaseI = DecreaseI
-    if SelectedVehs ~= nil then
-        ArgsT.SelectedVehs = SelectedVehs
-    end
-    if DisabledVehs ~= nil then
-        ArgsT.DisabledVehs = DisabledVehs
-    end
-    if UpgradeType ~= nil then
-        ArgsT.UpgradeType = UpgradeType
-    end
-    if PedSetts ~= nil then
-        ArgsT.PedSetts = PedSetts
-    end
-    if BringTargets ~= nil then
-        ArgsT.BringTargets = BringTargets
-    end
-    if VehHealth ~= nil then
-        ArgsT.VehHealth = VehHealth
-    end
-    return ArgsT
-end
-
 local SupplyVehsList = {
     "scramjet",
     "toreador",
     "vigilante",
     "oppressor"
-}
-
-local HeadHunter_Vehs = {
-    "vetir"
-}
-
-local BikerSell_DisabledVehs = {
-    {Model1 = "dodo", Model2 = "raiju"},
-    {Model1 = "pounder", Model2 = "vigilante"},
-    {Model1 = "buzzard2", Model2 = "raiju"},
-    {Model1 = "bagger", Model2 = "oppressor"},
-    {Model1 = "dinghy3", Model2 = "seasparrow"}
-}
-
-local IslH_DisabledVehs = {
-    {Model1 = "velum2", Model2 = "streamer216"},
-    {Model1 = "longfin", Model2 = "seasparrow"},
-    {Model1 = "valkyrie", Model2 = "pyro", Upgrade = 0},
-    {Model1 = "valkyrie2", Model2 = "pyro", Upgrade = 0}
-}
-
-local ContrabandBuy_DisabledVehs = {
-    {Model1 = "marquis", Model2 = "marquis"},
-    {Model1 = "valkyrie", Model2 = "valkyrie"},
-    {Model1 = "valkyrie2", Model2 = "valkyrie2"},
-    {Model1 = "frogger", Model2 = "frogger"}
-}
-
-local ContrabandSell_DisabledVehs = {
-    {Model1 = "tug", Model2 = "seasparrow"},
-    {Model1 = "titan", Model2 = "raiju"},
-    {Model1 = "brickade", Model2 = "scramjet"}
-}
-
-local BunkerSell_DisabledVehs = {
-    {Model1 = "phantom2", Model2 = "phantom2"}
-}
-
-local BBattle2_Objects = {
-    "ex_prop_crate_elec_bc"
-}
-
-local CBuy_Objects = {
-    "stt_prop_stunt_soccer_sball",
-    "vw_prop_casino_art_car_03a",
-    "sf_prop_sf_art_coin_01a"
-}
-
-local Biker_Objects = {
-    "vw_prop_casino_art_car_09a",
-    "vw_prop_casino_art_car_03a",
-    "vw_prop_casino_art_grenade_01c",
-    "sf_prop_sf_art_coin_01a"
-}
-
-local Bunker_Objects = {
-    "vw_prop_casino_art_car_09a",
-    "vw_prop_casino_art_car_03a",
-    "vw_prop_casino_art_grenade_01c",
-    "sf_prop_sf_art_coin_01a"
-}
-
-local Islh_Objects = {
-    "sf_prop_sf_art_statue_tgr_01a",
-    "sf_prop_sf_art_coin_01a"
 }
 
 local WeapsList = {}
@@ -133,155 +41,25 @@ local AiLikeHateAiHateRel = "rgFM_AiLike_HateAiHate"
 local AiHateAiHateRel = "rgFM_HateAiHate"
 local AiHateEveryone = "rgFM_HateEveryOne"
 
-local BikerResupply_SupplyVehNetID_Local = 932+33
-local BikerResupply_PedsNetID_Local = 932+73+1
-local BikerResupply_NextPed = 15
-local BikerResupply_VehsNetID_Local = 932+404+1
-local BikerResupply_NextVeh = 5
-local Biker_SpawnObjsT = CreateArgsT(8, BikerResupply_SupplyVehNetID_Local, 1, 0, Biker_Objects, nil)
-local Biker_SupplyVehsArgs = CreateArgsT(8, BikerResupply_SupplyVehNetID_Local, 1, 0, SupplyVehsList, Biker_DisabledVehs)
-local Biker_VehsArgs = CreateArgsT(10, BikerResupply_VehsNetID_Local, BikerResupply_NextVeh, 1, VehsList, Biker_DisabledVehs)
-local Biker_PedsArgs = CreateArgsT(22, BikerResupply_PedsNetID_Local, BikerResupply_NextPed, 1, nil, nil, nil, 2, 200.0)
-local Biker_ObjsArgs = CreateArgsT(8, BikerResupply_SupplyVehNetID_Local, 1, 0, Biker_Objects, nil)
-local Biker_LocalsToEdit = {
-    LocalsToEditT = {{LocalAddr = 932+5, Num = 9, ToNum = 7}, {LocalAddr = 932+5, Num = 9, ToNum = 8}},
-    Ticks = 0,
-    ActualIndex = 1,
-    DoneEditing = false
-}
-
-local BikerSell_DeliveryVehNetID = 698+59
-local BikerSell_SupplyVehsT = {}
-local BikerSell_SupplyVehsArgs = CreateArgsT(4, BikerSell_DeliveryVehNetID, 1, 0, SupplyVehsList, BikerSell_DisabledVehs, 1, nil, nil, 5000000)
-
-
-
-local Smuggler_VehNetID = 1928+530+1
-local Smuggler_NextVeh = 9
-local CH_DisabledVehs = {
-    {Model1 = "stockade", Model2 = "stockade"},
-    {Model1 = "riot", Model2 = "riot"},
-    {Model1 = "cargobob2", Model2 = "cargobob2"}
-}
-
-local CH_DisabledObjs = {
-    {Model1 = "ch_prop_emp_01b", Model2 = "ch_prop_emp_01b"},
-    {Model1 = "prop_drug_package_02", Model2 = "prop_drug_package_02"}
-}
-
-local Biker_DisabledVehs = {
-    {Model1 = "stockade", Model2 = "stockade"}
-}
-
-local CasinoHeist_SupplyVehNetIDs = 4275
-local CasinoHeist_NextSupplyVehs = 4
-local CasinoHeist_EnemyVehs = 4275+947+1
-local CasinoHeist_NextEnemyVehs = 8
-local CasinoHeist_PedsNetIDs = 4275+106+1
-local CasinoHeist_NextPeds = 24
-local CasinoHeist_ObjectsNetIDs = 4275
-local CH_SupplyVehsArgs = CreateArgsT(8, CasinoHeist_SupplyVehNetIDs, 1, 0, SupplyVehsList, CH_DisabledVehs, 1, nil, 600.0)
-local CH_VehsArgs = CreateArgsT(30, CasinoHeist_EnemyVehs, CasinoHeist_NextEnemyVehs, 1, VehsList, CH_DisabledVehs, 0, nil, 600.0)
-local CH_PedsArgs = CreateArgsT(35, CasinoHeist_PedsNetIDs, CasinoHeist_NextPeds, 1, nil, nil, nil, 2, 600.0)
-local CH_ObjsArgs = CreateArgsT(8, CasinoHeist_ObjectsNetIDs, 1, 0, Biker_Objects, nil, nil, nil, nil)
-
-local IslH_VehsNetIDLocal = 13062+863+1
-local IslH_NextVehsNetIDLocal = 8
-local IslH_PedsNetIDLocal = 13062+112+1
-local IslH_NextPedsNetIDLocal = 25
---local IslH_ObjsNetIDs = 13062+1334+1
---local IslH_ObjsNetIDs = 13062+2
-local IslH_ObjsNetIDs = 11641
-local IslH_NextObjsNetIDs = 3
-local IslH_VehsArgs = CreateArgsT(25, IslH_VehsNetIDLocal, IslH_NextVehsNetIDLocal, 1, VehsList, IslH_DisabledVehs, 0, nil, nil, 5000)
-local IslH_PedsArgs = CreateArgsT(30, IslH_PedsNetIDLocal, IslH_NextPedsNetIDLocal, 1, nil, nil, nil, 1)
---local IslH_ObjsArgs = CreateArgsT(10, IslH_ObjsNetIDs, IslH_NextObjsNetIDs, 1, Islh_Objects, nil, nil, nil)
-local IslH_ObjsArgs = CreateArgsT(1, IslH_ObjsNetIDs, 1, 0, Islh_Objects, nil, nil, nil)
---local IslH_ObjsArgs = CreateArgsT(4, IslH_ObjsNetIDs, IslH_NextObjsNetIDs, 1, Islh_Objects, nil, nil, nil)
-
-local HeadHunter_VehNetIDs = 94+2+1+2
-local HeadHunter_NextVehNetIDs = 26
-local HeadHunter_PedNetIDs = 94+2+1+1
-local HeadHunter_NextPedNetIDs = 26
-local HeadHunter_VehsArgs = CreateArgsT(4, HeadHunter_VehNetIDs, HeadHunter_NextVehNetIDs, 1, HeadHunter_Vehs, nil, 0, nil)
-local HeadHunter_PedsArgs = CreateArgsT(4, HeadHunter_PedNetIDs, HeadHunter_NextPedNetIDs, 1, nil, nil, nil, 2, 200.0)
-
-local ContrabandBuy_SupplyVehNetIDs = 599+14
-local ContrabandBuy_NextSupplyVehs = 1
-local ContrabandBuy_EnemyVehs = 599+159
-local ContrabandBuy_PedsNetIDs = 599+23+1
-local ContrabandBuy_NextPeds = 9
-local ContrabandBuy_ObjectsNetIDs = 599+14
-local ContrabandBuy_SupplyVehsArgs = CreateArgsT(3, ContrabandBuy_SupplyVehNetIDs, ContrabandBuy_NextSupplyVehs, 0, SupplyVehsList, ContrabandBuy_DisabledVehs, 1, nil)
-local ContrabandBuy_VehsArgs = CreateArgsT(6, ContrabandBuy_EnemyVehs, 1, 0, VehsList, ContrabandBuy_DisabledVehs, 0, nil)
-local ContrabandBuy_PedsArgs = CreateArgsT(15, ContrabandBuy_PedsNetIDs, ContrabandBuy_NextPeds, 1, nil, nil, nil, 2)
-local ContrabandBuy_ObjsArgs = CreateArgsT(3, ContrabandBuy_ObjectsNetIDs, 1, 0, CBuy_Objects, nil, nil, nil, nil)
-
-local ContrabandSell_SupplyVehNetIDs = 541+35
-local ContrabandSell_PedsNetIDs = 541+401+1
-local ContrabandSell_NextPeds = 8
-local ContrabandSell_SupplyVehsArgs = CreateArgsT(3, ContrabandSell_SupplyVehNetIDs, 1, 0, SupplyVehsList, ContrabandSell_DisabledVehs, 1, nil)
-local ContrabandSell_VehsArgs = CreateArgsT(6, ContrabandBuy_SupplyVehNetIDs, ContrabandBuy_NextSupplyVehs, 1, VehsList, nil, 0, nil)
-local ContrabandSell_PedsArgs = CreateArgsT(12, ContrabandSell_PedsNetIDs, ContrabandSell_NextPeds, 1, nil, nil, nil, 1)
-
-local Biker_RescueContact_PedsNetIDs = 1261+11
-local Biker_RescueContact_VehsNetIDs = 1261+36
-local Biker_RescueContact_PedsArgs = CreateArgsT(20, Biker_RescueContact_PedsNetIDs, 1, 0, nil, nil, nil, 3, nil)
-local Biker_RescueContact_VehsArgs = CreateArgsT(4, Biker_RescueContact_VehsNetIDs, 1, 0, VehsList, nil, 0, nil, nil)
-
-local BusinessBattles_SupplyVehsNetIDs = 2399
-local BusinessBattles_VehsNetIDs = 2399+624+1
-local BusinessBattles_NextVehsNetIDs = 7
-local BusinessBattles_PedsNetIDs = 2399+98+1
-local BusinessBattles_NextPedsNetIDs = 15
-local BusinessBattles_SupplyVehsArgs = CreateArgsT(8, BusinessBattles_SupplyVehsNetIDs, 1, 0, VehsList, nil, 1, nil, nil)
-local BusinessBattles_VehsArgs = CreateArgsT(30, BusinessBattles_VehsNetIDs, BusinessBattles_NextVehsNetIDs, 1, VehsList, nil, 0, nil, nil)
-local BusinessBattles_PedsArgs = CreateArgsT(35, BusinessBattles_PedsNetIDs, BusinessBattles_NextPedsNetIDs, 1, nil, nil, nil, 3, 400.0)
-
-local BusinessBattles2_VehsNetIDs = 5090+843+1
-local BusinessBattles2_NextVehsNetIDs = 8
-local BusinessBattles2_PedsNetIDs = 5090+92+1
-local BusinessBattles2_NextPedsNetIDs = 25
-local BusinessBattles2_ObjsNetIDs = 5090+2
-local BusinessBattles2_NextObjsNetIDs = 5
-local BusinessBattles2_VehsArgs = CreateArgsT(10, BusinessBattles2_VehsNetIDs, BusinessBattles2_NextVehsNetIDs, 1, VehsList, nil, 0, nil, nil)
-local BusinessBattles2_PedsArgs = CreateArgsT(30, BusinessBattles2_PedsNetIDs, BusinessBattles2_NextPedsNetIDs, 1, nil, nil, nil, 2, nil)
-local BusinessBattles2_ObjsArgs = CreateArgsT(8, BusinessBattles2_ObjsNetIDs, 1, 0, BBattle2_Objects, nil, nil, nil, nil)
-
-local FMContentCargo_ObjsNetIDs = 5621+2
---local FMContentCargo_ObjsNetIDs = 5621+908
---local FMContentCargo_NextObjsNetIDs = 5
-local FMContentCargo_PropsNetIDs = 5621+908+1
-local FMContentCargo_NextProps = 5
-local FMContentCargo_ObjsArgs = CreateArgsT(3, FMContentCargo_ObjsNetIDs, 1, 0, BBattle2_Objects, nil, nil, nil, nil)
-local FMContentCargo_BringPropsArgs = CreateArgsT(31, FMContentCargo_PropsNetIDs, FMContentCargo_NextProps, 1, BBattle2_Objects, nil, nil, nil, nil)
---local FMContentCargo_ObjsArgs = CreateArgsT(3, FMContentCargo_ObjsNetIDs, FMContentCargo_NextObjsNetIDs, 1, BBattle2_Objects, nil, nil, nil, nil)
-
-local Gunrunning_SupplyVehsNetIDs = 1206+4
-local Gunrunning_VehsNetIDs = 1206+470+1
-local Gunrunning_NextVehsNetIDs = 5
-local Gunrunning_PedsNetIDs = 1206+92+1
-local Gunrunning_NextPedsNetIDs = 13
-local Gunrunning_SupplyVehsArgs = CreateArgsT(8, Gunrunning_SupplyVehsNetIDs, 1, 0, SupplyVehsList, BunkerSell_DisabledVehs, nil, nil, nil)
-local Gunrunning_VehsArgs = CreateArgsT(16, Gunrunning_VehsNetIDs, Gunrunning_NextVehsNetIDs, 1, VehsList, BunkerSell_DisabledVehs, nil, nil, nil)
-local Gunrunning_ObjsArgs = CreateArgsT(8, Gunrunning_SupplyVehsNetIDs, 1, 0, Bunker_Objects, nil, nil, nil, nil)
-local Gunrunning_PedsArgs = CreateArgsT(29, Gunrunning_PedsNetIDs, Gunrunning_NextPedsNetIDs, 1, nil, nil, nil, 2, nil, nil)
 
 
 local MissionEnhancerMenu = menu.list(menu.my_root(), "Mission Enhancer", {}, "Randomize and enhance tools.")
 
-local BikerMissions = false
-menu.toggle(MissionEnhancerMenu, "Improve Missions", {}, "Let it fun.", function(Toggle)
-	BikerMissions = Toggle
-	if BikerMissions then
-		while BikerMissions do
-            ScriptHandler(GunrunningT)
-            ScriptHandler(ContrabandSellT)
-            ScriptHandler(ContrabandBuyT)
-            ScriptHandler(CayoPericoHeistT)
-            ScriptHandler(CasinoHeistT)
-            ScriptHandler(BikerResupplyT)
-            ScriptHandler(BikerSellT)
+
+local ImproveMissions = true
+menu.toggle(MissionEnhancerMenu, "Improves Missions", {}, "Let it fun.", function(Toggle)
+	ImproveMissions = Toggle
+	if ImproveMissions then
+		while ImproveMissions do
+            --ScriptHandler(GunrunningT)
+            --ScriptHandler(ContrabandSellT)
+            --ScriptHandler(ContrabandBuyT)
+            --ScriptHandler(CayoPericoHeistT)
+            --ScriptHandler(CasinoHeistT)
+            --ScriptHandler(BikerResupplyT)
+            --ScriptHandler(BikerSellT)
+            --ScriptHandler(BusinessBattlesT)
+            --ScriptHandler(BusinessBattles2T)
             Wait()
         end
 	end
@@ -291,7 +69,6 @@ local CreateSupplies = false
 menu.toggle(MissionEnhancerMenu, "Auto Create Supplies", {}, "", function(Toggle)
 	CreateSupplies = Toggle
 end)
-
 local MoreSupplyVehHealth = false
 menu.toggle(MissionEnhancerMenu, "More Supply Vehicle Health", {}, "Challenging.", function(Toggle)
 	MoreSupplyVehHealth = Toggle
@@ -303,9 +80,9 @@ menu.toggle(MissionEnhancerMenu, "Bring Far Targets Closer", {}, "To make it les
 end)
 
 local BringMissionCloser = false
-menu.toggle(MissionEnhancerMenu, "Bring All Far Entities Closer", {}, "To make it less boring.", function(Toggle)
+menu.toggle(MissionEnhancerMenu, "Bring All Far Away Entities Closer", {"bringallfarents"}, "Fun!!!", function(Toggle)
 	BringMissionCloser = Toggle
-end)
+end, BringMissionCloser)
 
 local AddBlipForBringedEntity = false
 menu.toggle(MissionEnhancerMenu, "Add Blip To Teleported Entities", {}, "To locate.", function(Toggle)
@@ -321,6 +98,35 @@ menu.slider_float(MissionEnhancerMenu, "Max Distance", {"maxdistancetobring"}, "
     DistToCheck = OnChange / 100
 end)
 
+local AllowedMissionsMenu = menu.list(MissionEnhancerMenu, "Allowed Missions To Edit", {}, "To avoid bothering other players.")
+
+menu.toggle(AllowedMissionsMenu, "Biker Resupply", {}, "", function(Toggle)
+	BikerResupplyT.AllowedToEdit = Toggle
+end, BikerResupplyT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Biker Sell", {}, "", function(Toggle)
+	BikerSellT.AllowedToEdit = Toggle
+end, BikerSellT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Casino Heist Preps", {}, "", function(Toggle)
+	CasinoHeistT.AllowedToEdit = Toggle
+end, CasinoHeistT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Cayo Perico Heist Preps", {}, "", function(Toggle)
+	CayoPericoHeistT.AllowedToEdit = Toggle
+end, CayoPericoHeistT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "CEO Contraband Buy", {}, "", function(Toggle)
+	ContrabandBuyT.AllowedToEdit = Toggle
+end, ContrabandBuyT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "CEO Contraband Sell", {}, "", function(Toggle)
+	ContrabandSellT.AllowedToEdit = Toggle
+end, ContrabandSellT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Gunrunning", {}, "", function(Toggle)
+	GunrunningT.AllowedToEdit = Toggle
+end, GunrunningT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Business Battles", {}, "", function(Toggle)
+	BusinessBattlesT.AllowedToEdit = Toggle
+end, BusinessBattlesT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Business Battles 2", {}, "", function(Toggle)
+	BusinessBattles2T.AllowedToEdit = Toggle
+end, BusinessBattles2T.AllowedToEdit)
 
 local MissionStarterMenu = menu.list(menu.my_root(), "Mission Starter (Experimental)", {}, "Make other players play fun missions.")
 
@@ -678,13 +484,19 @@ end)
 menu.action(BikerAppsMenu, "Counterfeit Cash Factory App", {}, "", function(Toggle)
     StartAppScript("appBikerBusiness", 4592, 30)
 end)
+menu.action(BikerAppsMenu, "Close Biker App", {}, "Can fix your game sometimes.", function(Toggle)
+    if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("appbikerbusiness")) > 0 then
+        MISC.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("appbikerbusiness")
+        Print("Terminated")
+    end
+end)
 
---[[
 local SecuroServAppsMenu = menu.list(AppsMenu, "SecuroServ Apps", {}, "")
 menu.action(SecuroServAppsMenu, "Office App", {}, "", function(Toggle)
     StartAppScript("appSecuroServ", 4592, -1, 88)
 end)
 
+--[[
 local MiscMenu = menu.list(menu.my_root(), "Misc", {}, "")
 menu.toggle_loop(MiscMenu, "B Battle Collect All 8 Crates", {""}, "", function(toggle)
 	local Pickups = entities.get_all_pickups_as_handles()
@@ -698,9 +510,13 @@ menu.toggle_loop(MiscMenu, "B Battle Collect All 8 Crates", {""}, "", function(t
 		end
 	end
 end)
+
+menu.action(MiscMenu, "B Battle2 Args", {}, "", function(Toggle)
+    memory.write_int(memory.script_global(SplitGlobals("Global_2756336.f_183")), 1)
+    memory.write_int(memory.script_global(SplitGlobals("Global_2756336.f_184")), 2)
+end)
 ]]
 local DevToolsMenu = menu.list(menu.my_root(), "DEV Tools", {}, "")
-
 menu.action(DevToolsMenu, "Copy Coords And Heading", {}, "", function(Toggle)
     local Coords = ENTITY.GET_ENTITY_COORDS(PLAYER.PLAYER_PED_ID())
     local Heading = ENTITY.GET_ENTITY_HEADING(PLAYER.PLAYER_PED_ID())
@@ -709,8 +525,8 @@ menu.action(DevToolsMenu, "Copy Coords And Heading", {}, "", function(Toggle)
 end)
 
 menu.action(DevToolsMenu, "Test", {}, "", function(Toggle)
-    --util.copy_to_clipboard(string.format("%X", memory.script_global(AppGlobals.PropertyNumber + AppGlobals.NextPlayer * PLAYER.PLAYER_ID())))
-    util.copy_to_clipboard(string.format("%X", memory.script_global(AppGlobals.PropertyID + AppGlobals.NextPlayerPropertyID * PLAYER.PLAYER_ID())))
+    util.copy_to_clipboard(string.format("%X", memory.script_global(AppGlobals.PropertyNumber + AppGlobals.NextPlayer * PLAYER.PLAYER_ID())))
+    --util.copy_to_clipboard(string.format("%X", memory.script_global(AppGlobals.PropertyID + AppGlobals.NextPlayerPropertyID * PLAYER.PLAYER_ID())))
 end)
 
 menu.text_input(DevToolsMenu, "Copy Local Addr", {"copylocaladdr"}, "For devs.", function(OnChange)
@@ -803,13 +619,6 @@ menu.toggle_loop(DevToolsMenu, "Test Freeze Mission", {}, "", function(Toggle)
         --memory.write_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * PlayerID), 167)
         --memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * PlayerID), 167)
         --memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * PlayerID), 0)
-    end
-end)
-
-menu.action(MissionEnhancerMenu, "Close Biker App", {}, "Can fix your game sometimes.", function(Toggle)
-    if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("appbikerbusiness")) > 0 then
-        MISC.TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("appbikerbusiness")
-        Print("Terminated")
     end
 end)
 
@@ -941,7 +750,7 @@ local MaxTickReachToWrite = 800
 function ScriptHandler(ArgsTable)
     if ArgsTable.AllowedToEdit then
         local ScriptName = ArgsTable.ScriptName
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat(ScriptName)) > 0 and BikerMissions then
+        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat(ScriptName)) > 0 and ImproveMissions then
             local IsParticipant = false
             util.spoof_script(ScriptName, function()
                 IsParticipant = NETWORK.NETWORK_IS_PLAYER_A_PARTICIPANT(PLAYER.PLAYER_ID())

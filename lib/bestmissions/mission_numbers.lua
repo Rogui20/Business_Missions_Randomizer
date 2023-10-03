@@ -104,5 +104,6 @@ AppGlobals = {
     NextPlayer = 463,
     WarehouseOrOffice = SplitGlobals("Global_1969858.f_1"),
     PropertyID = SplitGlobals("Global_1853988[PLAYER::PLAYER_ID() /*867*/].f_267.f_33"),
-    NextPlayerPropertyID = 867
+    NextPlayerPropertyID = 867,
+    AppState = SplitGlobals("Global_1950700")
 }

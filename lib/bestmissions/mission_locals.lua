@@ -10,15 +10,22 @@ local Biker_DisabledVehs = {
 }
 
 local Biker_Objects = {
-    "vw_prop_casino_art_car_09a",
-    "vw_prop_casino_art_car_03a",
+    "ex_prop_crate_ammo_bc",
+    "ex_prop_crate_ammo_sc",
     "vw_prop_casino_art_grenade_01c",
-    "sf_prop_sf_art_coin_01a"
+    "sf_prop_sf_art_coin_01a",
+    "ex_prop_adv_case_sm_02",
+    "ex_prop_crate_elec_sc",
+    "ex_prop_crate_elec_bc",
+    "ex_prop_crate_minig",
+    "ex_prop_crate_tob_sc",
+    "ex_prop_crate_shide"
 }
 
 BikerResupplyT = {
     AllowedToEdit = true,
     ScriptName = "gb_illicit_goods_resupply",
+    LocalsToEditT = {Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_932.f_5"), Num = 9, ToNum = 7},
     Vehicles = {{
         MaxLen = 8,
         LocalAddr = SplitGlobals("Local_932.f_33"),

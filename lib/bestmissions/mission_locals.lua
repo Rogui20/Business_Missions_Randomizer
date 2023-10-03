@@ -367,3 +367,127 @@ GunrunningT = {
         SpawnObjectsT = {}
     }}
 }
+
+local BusinessBattles_DisabledVehs = {
+    {Model1 = "stockade", Model2 = "stockade"}
+}
+
+local BusinessBattles_Objects = {
+    "ex_prop_crate_ammo_bc",
+    "ex_prop_crate_ammo_sc",
+    "vw_prop_casino_art_grenade_01c",
+    "sf_prop_sf_art_coin_01a",
+    "ex_prop_adv_case_sm_02",
+    "ex_prop_crate_elec_sc",
+    "ex_prop_crate_elec_bc",
+    "ex_prop_crate_minig",
+    "ex_prop_crate_tob_sc",
+    "ex_prop_crate_shide"
+}
+
+BusinessBattlesT = {
+    AllowedToEdit = true,
+    ScriptName = "business_battles",
+    Vehicles = {{
+        MaxLen = 8,
+        LocalAddr = SplitGlobals("Local_2399"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = SupplyVehsList,
+        DisabledModels = nil,
+        UpgradeType = 1,
+        BringTargets = 200.0,
+        HealthToGive = 50000,
+        VehiclesT = {}
+    },
+    {
+        MaxLen = 30,
+        LocalAddr = SplitGlobals("Local_2399.f_624[*7*]"),
+        NextOffset = 7,
+        DecreaseI = 1,
+        SelectedModels = VehsList,
+        DisabledModels = nil,
+        UpgradeType = 0,
+        BringTargets = 200.0,
+        HealthToGive = nil,
+        VehiclesT = {}
+    }},
+    Peds = {{
+        MaxLen = 35,
+        LocalAddr = SplitGlobals("Local_2399.f_98[*15*]"),
+        NextOffset = 15,
+        DecreaseI = 1,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    }},
+    Objects = {{
+        MaxLen = 8,
+        LocalAddr = SplitGlobals("Local_2399"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = BusinessBattles_Objects,
+        DisabledModels = nil,
+        BringTargets = nil,
+        ObjectsT = {},
+        SpawnObjectsT = {}
+    }}
+}
+
+local BusinessBattles2_DisabledVehs = {
+    {Model1 = "stockade", Model2 = "stockade"}
+}
+
+local BusinessBattles2_Objects = {
+    "ex_prop_crate_ammo_bc",
+    "ex_prop_crate_ammo_sc",
+    "vw_prop_casino_art_grenade_01c",
+    "sf_prop_sf_art_coin_01a",
+    "ex_prop_adv_case_sm_02",
+    "ex_prop_crate_elec_sc",
+    "ex_prop_crate_elec_bc",
+    "ex_prop_crate_minig",
+    "ex_prop_crate_tob_sc",
+    "ex_prop_crate_shide"
+}
+
+BusinessBattles2T = {
+    AllowedToEdit = true,
+    ScriptName = "fm_content_business_battles",
+    Vehicles = {{
+        MaxLen = 10,
+        LocalAddr = SplitGlobals("Local_5090.f_843[*8*]"),
+        NextOffset = 8,
+        DecreaseI = 1,
+        SelectedModels = VehsList,
+        DisabledModels = nil,
+        UpgradeType = 1,
+        BringTargets = 200.0,
+        HealthToGive = 50000,
+        VehiclesT = {}
+    }},
+    Peds = {{
+        MaxLen = 35,
+        LocalAddr = SplitGlobals("Local_5090.f_92[*25*]"),
+        NextOffset = 25,
+        DecreaseI = 1,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    }},
+    Objects = {{
+        MaxLen = 8,
+        LocalAddr = SplitGlobals("Local_5090.f_2"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = BusinessBattles2_Objects,
+        DisabledModels = nil,
+        BringTargets = nil,
+        ObjectsT = {},
+        SpawnObjectsT = {}
+    }}
+}

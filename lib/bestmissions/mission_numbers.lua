@@ -98,3 +98,11 @@ MissionGlobals = {
     InWhichPlayerIndex = SplitGlobals("Global_1895156[bParam0 /*609*/].f_10.f_35"),
     NextPlayer = 609
 }
+
+AppGlobals = {
+    PropertyNumber = SplitGlobals("Global_2657704[iParam0 /*463*/].f_321.f_7"),
+    NextPlayer = 463,
+    WarehouseOrOffice = SplitGlobals("Global_1969858.f_1"),
+    PropertyID = SplitGlobals("Global_1853988[PLAYER::PLAYER_ID() /*867*/].f_267.f_33"),
+    NextPlayerPropertyID = 867
+}

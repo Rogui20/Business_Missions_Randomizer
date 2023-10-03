@@ -307,6 +307,11 @@ menu.toggle(MissionEnhancerMenu, "Bring All Far Entities Closer", {}, "To make i
 	BringMissionCloser = Toggle
 end)
 
+local AddBlipForBringedEntity = false
+menu.toggle(MissionEnhancerMenu, "Add Blip To Teleported Entities", {}, "To locate.", function(Toggle)
+	AddBlipForBringedEntity = Toggle
+end, AddBlipForBringedEntity)
+
 local MaxDistToBring = 20.0
 menu.slider_float(MissionEnhancerMenu, "Closest Distance To Bring", {"closestbring"}, "Distance between the player and entity to teleport.", 1000, 50000, 2000, 1000, function(OnChange)
     MaxDistToBring = OnChange / 100
@@ -316,10 +321,6 @@ menu.slider_float(MissionEnhancerMenu, "Max Distance", {"maxdistancetobring"}, "
     DistToCheck = OnChange / 100
 end)
 
-local AddBlipForBringedEntity = false
-menu.toggle(MissionEnhancerMenu, "Add Blip To Teleported Entities", {}, "To locate.", function(Toggle)
-	AddBlipForBringedEntity = Toggle
-end, AddBlipForBringedEntity)
 
 local MissionStarterMenu = menu.list(menu.my_root(), "Mission Starter (Experimental)", {}, "Make other players play fun missions.")
 
@@ -664,10 +665,16 @@ end)
 
 local AppsMenu = menu.list(menu.my_root(), "Business Apps", {}, "Manage businesses anywhere!")
 local BikerAppsMenu = menu.list(AppsMenu, "Biker Apps", {}, "")
+
+menu.action(BikerAppsMenu, "Open Road App", {}, "", function(Toggle)
+    StartAppScript("appBikerBusiness", 4592, -1)
+end)
+menu.action(BikerAppsMenu, "Document Forgery App", {}, "", function(Toggle)
+    StartAppScript("appBikerBusiness", 4592, 31)
+end)
 menu.action(BikerAppsMenu, "Weed Factory App", {}, "", function(Toggle)
     StartAppScript("appBikerBusiness", 4592, 28)
 end)
-
 menu.action(BikerAppsMenu, "Counterfeit Cash Factory App", {}, "", function(Toggle)
     StartAppScript("appBikerBusiness", 4592, 30)
 end)
@@ -721,6 +728,7 @@ menu.text_input(DevToolsMenu, "Copy Global Addr", {"copyglobaladdr"}, "For devs.
 end)
 
 function StartAppScript(ScriptName, StackSize, PropertyNumber, PropertyID)
+    memory.write_int(memory.script_global(AppGlobals.AppState), 0)
     if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat(string.lower(ScriptName))) == 0 then
         local PlayerID = PLAYER.PLAYER_ID()
         if PropertyNumber ~= nil then
@@ -747,6 +755,7 @@ function StartAppScript(ScriptName, StackSize, PropertyNumber, PropertyID)
             end
             memory.write_int(memory.script_global(AppGlobals.PropertyID + AppGlobals.NextPlayerPropertyID * PlayerID), -1)
         end
+        memory.write_int(memory.script_global(AppGlobals.AppState), 0)
     end
 end
 
@@ -823,6 +832,20 @@ function CopyVehSettingsToAnotherVeh(CopyVehSetts, ToVeh)
     --    local VehMod = VEHICLE.GET_VEHICLE_MOD(CopyVehSetts, i)
     --    VEHICLE.SET_VEHICLE_MOD(ToVeh, i, VehMod, false)
     --end
+    for k = 0, 48 do
+        local NumMods = entities.get_upgrade_max_value(ToVeh, k)
+        if NumMods > 0 then
+            local Rand = math.random(0, NumMods)
+            if Rand <= -1 then
+                Rand = 0
+            end
+            entities.set_upgrade_value(ToVeh, k, Rand, false)
+        else
+            if math.random(0, 1) == 1 then
+                entities.set_upgrade_value(ToVeh, k, NumMods, false)
+            end
+        end
+    end
 end
 
 function SetSupplyVehSettings(Veh, Health)
@@ -913,6 +936,7 @@ end
 
 local MaxCreateAttemps = 3
 local MaxZeroTick = 100
+local MaxTickReachToWrite = 800
 
 function ScriptHandler(ArgsTable)
     if ArgsTable.AllowedToEdit then
@@ -937,6 +961,16 @@ function ScriptHandler(ArgsTable)
                 if IsHost then
                     local PlayerPed = PLAYER.PLAYER_PED_ID()
                     local PlPos = ENTITY.GET_ENTITY_COORDS(PlayerPed)
+                    if ArgsTable.LocalsToEditT ~= nil then
+                        if ArgsTable.LocalsToEditT.Tick < ArgsTable.LocalsToEditT.MaxTick then
+                            ArgsTable.LocalsToEditT.Tick = ArgsTable.LocalsToEditT.Tick + 1
+                            if ArgsTable.LocalsToEditT.Tick >= ArgsTable.LocalsToEditT.MaxTick then
+                                if memory.read_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT.LocalAddr)) == ArgsTable.LocalsToEditT.Num then
+                                    memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT.LocalAddr), ArgsTable.LocalsToEditT.ToNum)
+                                end
+                            end
+                        end
+                    end
                     for k = 1, #ArgsTable.Vehicles do
                         for i = 1, ArgsTable.Vehicles[k].MaxLen do
                             if ArgsTable.Vehicles[k].VehiclesT[i] == nil then
@@ -1178,8 +1212,8 @@ function ScriptHandler(ArgsTable)
                                                         STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(ArgsTable.Peds[j].PedsT[i].Model))
                                                     end
                                                 else
-                                                    ArgsTable.Peds[j].PedsT[i] = EntNetID
-                                                    ArgsTable.Peds[j].PedsT[i] = PedHandle
+                                                    ArgsTable.Peds[j].PedsT[i].NetID  = EntNetID
+                                                    ArgsTable.Peds[j].PedsT[i].Handle = PedHandle
                                                     STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(ArgsTable.Peds[j].PedsT[i].Model))
                                                     local RelHash = PED.GET_PED_RELATIONSHIP_GROUP_HASH(ArgsTable.Peds[j].PedsT[i].OldHandle)
                                                     PED.SET_PED_RELATIONSHIP_GROUP_HASH(PedHandle, RelHash)
@@ -1232,16 +1266,16 @@ function ScriptHandler(ArgsTable)
                                                         ENTITY.SET_ENTITY_HEALTH(PedHandle, Health)
                                                     end
                                                     if ArgsTable.Peds[j].PedsT[i].PedSetts == 1 then
-                                                        CopyPedSettsToPed(ArgsTable.Peds[j].PedsT[i], PedHandle)
+                                                        CopyPedSettsToPed(ArgsTable.Peds[j].PedsT[i].OldHandle, PedHandle)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 17, false)
                                                     end
                                                     if ArgsTable.Peds[j].PedsT[i].PedSetts == 2 then
-                                                        CopyPedSettsToPed(ArgsTable.Peds[j].PedsT[i], PedHandle)
+                                                        CopyPedSettsToPed(ArgsTable.Peds[j].PedsT[i].OldHandle, PedHandle)
                                                         SetRandomPedSetts(PedHandle)
                                                     end
                                                     if ArgsTable.Peds[j].PedsT[i].PedSetts == 3 then
-                                                        CopyPedSettsToPed(ArgsTable.Peds[j].PedsT[i], PedHandle)
+                                                        CopyPedSettsToPed(ArgsTable.Peds[j].PedsT[i].OldHandle, PedHandle)
                                                         WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat(WeapsList[math.random(#WeapsList)]), 99999, false, true)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, 17)
@@ -1490,6 +1524,11 @@ function ScriptHandler(ArgsTable)
                 end
             end
         else
+            if ArgsTable.LocalsToEditT ~= nil then
+                if ArgsTable.LocalsToEditT.Tick > 0 then
+                    ArgsTable.LocalsToEditT.Tick = 0
+                end
+            end
             for k = 1, #ArgsTable.Vehicles do
                 for i = 1, ArgsTable.Vehicles[k].MaxLen do
                     if ArgsTable.Vehicles[k].VehiclesT[i] ~= nil then
@@ -1527,13 +1566,14 @@ end
 function FindRightSpawnVeh(PosX, PosY, PosZ, MinDist, MaxDist)
 	local OutPos = v3.new()
 	local OutHeading = memory.alloc(4)
-	local FoundCoord = PATHFIND.GET_CLOSEST_VEHICLE_NODE_WITH_HEADING(PosX + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosY + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosZ, OutPos, OutHeading, 0, 3, 0)
-	return OutPos, memory.read_float(OutHeading), FoundCoord
+	--local FoundCoord = PATHFIND.GET_CLOSEST_VEHICLE_NODE_WITH_HEADING(PosX + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosY + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosZ, OutPos, OutHeading, 0, 3, 0)
+	local FoundCoord = PATHFIND.GET_CLOSEST_VEHICLE_NODE_WITH_HEADING(PosX + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosY + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosZ, OutPos, OutHeading, 1, 3.0, 0.0)
+    return OutPos, memory.read_float(OutHeading), FoundCoord
 end
 
 function FindRightSpawnPed(PosX, PosY, PosZ, MinDist, MaxDist)
 	local OutPos = v3.new()
-	local FoundCoord = PATHFIND.GET_SAFE_COORD_FOR_PED(PosX + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosY + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosZ, false, OutPos, 16)
+	local FoundCoord = PATHFIND.GET_SAFE_COORD_FOR_PED(PosX + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosY + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosZ, false, OutPos, 14)
 	return OutPos, FoundCoord
 end
 

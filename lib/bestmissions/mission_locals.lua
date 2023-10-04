@@ -5,6 +5,37 @@ local SupplyVehsList = {
     "oppressor"
 }
 
+local Global_Objects = {
+    "ex_prop_crate_ammo_bc",
+    "ex_prop_crate_ammo_sc",
+    "vw_prop_casino_art_grenade_01c",
+    "sf_prop_sf_art_coin_01a",
+    "ex_prop_adv_case_sm_02",
+    "ex_prop_crate_elec_sc",
+    "ex_prop_crate_elec_bc",
+    "ex_prop_crate_minig",
+    "ex_prop_crate_tob_sc",
+    "ex_prop_crate_shide",
+    "stt_prop_stunt_soccer_sball",
+    "vw_prop_casino_art_car_03a",
+    "sf_prop_sf_art_statue_tgr_01a",
+    "p_rcss_folded",
+    "p_gcase_s",
+    "bkr_prop_bkr_cashpile_04",
+    "bkr_prop_coke_powderedmilk",
+    "bkr_prop_biker_gcase_s",
+    "ex_office_swag_booze_cigs",
+    "ex_office_swag_electronic3",
+    "ex_office_swag_electronic",
+    "ex_office_swag_med2",
+    "ex_prop_ex_laptop_01a",
+    "ex_office_swag_silver2",
+    "ex_office_swag_silver3",
+    "prop_large_gold",
+    "vw_prop_casino_art_miniature_05a",
+    "vw_prop_casino_art_grenade_01a"
+}
+
 local Biker_DisabledVehs = {
     {Model1 = "stockade", Model2 = "stockade"}
 }
@@ -26,6 +57,7 @@ BikerResupplyT = {
     AllowedToEdit = true,
     ScriptName = "gb_illicit_goods_resupply",
     LocalsToEditT = {Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_932.f_5"), Num = 9, ToNum = 7},
+    BestSellMission = {LocalAddr = SplitGlobals("Local_699.f_17"), ToNum = 0},
     Vehicles = {{
         MaxLen = 8,
         LocalAddr = SplitGlobals("Local_932.f_33"),
@@ -66,7 +98,7 @@ BikerResupplyT = {
         LocalAddr = SplitGlobals("Local_932.f_33"),
         NextOffset = 1,
         DecreaseI = 0,
-        SelectedModels = Biker_Objects,
+        SelectedModels = Global_Objects,
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
@@ -154,7 +186,7 @@ CasinoHeistT = {
         LocalAddr = SplitGlobals("Local_4275"),
         NextOffset = 1,
         DecreaseI = 0,
-        SelectedModels = Biker_Objects,
+        SelectedModels = Global_Objects,
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
@@ -269,7 +301,7 @@ ContrabandBuyT = {
         LocalAddr = SplitGlobals("Local_599.f_14"),
         NextOffset = 1,
         DecreaseI = 0,
-        SelectedModels = CBuy_Objects,
+        SelectedModels = Global_Objects,
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
@@ -360,7 +392,7 @@ GunrunningT = {
         LocalAddr = SplitGlobals("Local_1206.f_4"),
         NextOffset = 1,
         DecreaseI = 0,
-        SelectedModels = Bunker_Objects,
+        SelectedModels = Global_Objects,
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
@@ -425,10 +457,10 @@ BusinessBattlesT = {
     }},
     Objects = {{
         MaxLen = 8,
-        LocalAddr = SplitGlobals("Local_2399"),
+        LocalAddr = SplitGlobals("uLocal_2399.f_1110"),
         NextOffset = 1,
         DecreaseI = 0,
-        SelectedModels = BusinessBattles_Objects,
+        SelectedModels = Global_Objects,
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
@@ -484,7 +516,7 @@ BusinessBattles2T = {
         LocalAddr = SplitGlobals("Local_5090.f_2"),
         NextOffset = 1,
         DecreaseI = 0,
-        SelectedModels = BusinessBattles2_Objects,
+        SelectedModels = Global_Objects,
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},

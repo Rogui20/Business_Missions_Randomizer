@@ -46,6 +46,18 @@ local MissionEnhancerMenu = menu.list(menu.my_root(), "Mission Enhancer", {}, "R
 local ImproveMissions = false
 menu.toggle(MissionEnhancerMenu, "Enhance Missions", {}, "Let it fun.", function(Toggle)
 	ImproveMissions = Toggle
+    if not ImproveMissions then
+        ScriptHandler(GunrunningT)
+        ScriptHandler(ContrabandSellT)
+        ScriptHandler(ContrabandBuyT)
+        ScriptHandler(CayoPericoHeistT)
+        ScriptHandler(CasinoHeistT)
+        ScriptHandler(BikerResupplyT)
+        ScriptHandler(BikerSellT)
+        ScriptHandler(BusinessBattlesT)
+        ScriptHandler(BusinessBattles2T)
+        ScriptHandler(ContrabandBuy2T)
+    end
 	if ImproveMissions then
 		while ImproveMissions do
             ScriptHandler(GunrunningT)
@@ -57,10 +69,29 @@ menu.toggle(MissionEnhancerMenu, "Enhance Missions", {}, "Let it fun.", function
             ScriptHandler(BikerSellT)
             ScriptHandler(BusinessBattlesT)
             ScriptHandler(BusinessBattles2T)
+            ScriptHandler(ContrabandBuy2T)
             Wait()
         end
 	end
 end, ImproveMissions)
+
+local TestToggle = false
+menu.toggle(MissionEnhancerMenu, "Test", {}, "", function(Toggle)
+    TestToggle = Toggle
+    while TestToggle do
+        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("fm_content_cargo")) > 0 then
+            for i = 0, 30 do
+                memory.write_float(memory.script_local("fm_content_cargo", 244+1036+1+1+4 + 12 * i), 962.31896972656)
+                memory.write_float(memory.script_local("fm_content_cargo", 244+1036+1+1+5 + 12 * i), -645.20697021484)
+                memory.write_float(memory.script_local("fm_content_cargo", 244+1036+1+1+6 + 12 * i), 57.360958099365)
+                memory.write_float(memory.script_local("fm_content_cargo", 244+1036+1+1+7 + 12 * i), 36.447971343994)
+            end
+        end
+        Wait()
+    end
+end, TestToggle)
+
+-- x = 962.31896972656, y = -645.20697021484, z = 57.360958099365, heading = 36.447971343994
 
 local AlwaysBestSellMission = false
 menu.toggle(MissionEnhancerMenu, "Always Get Best Sell Mission", {}, "", function(Toggle)
@@ -121,6 +152,9 @@ end, CayoPericoHeistT.AllowedToEdit)
 menu.toggle(AllowedMissionsMenu, "CEO Contraband Buy", {}, "", function(Toggle)
 	ContrabandBuyT.AllowedToEdit = Toggle
 end, ContrabandBuyT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "CEO Contraband Buy 2", {}, "", function(Toggle)
+	ContrabandBuy2T.AllowedToEdit = Toggle
+end, ContrabandBuy2T.AllowedToEdit)
 menu.toggle(AllowedMissionsMenu, "CEO Contraband Sell", {}, "", function(Toggle)
 	ContrabandSellT.AllowedToEdit = Toggle
 end, ContrabandSellT.AllowedToEdit)
@@ -529,19 +563,20 @@ menu.toggle(MiscMenu, "Party Night Lights", {""}, "", function(Toggle)
     if PartyNightLights then
         local VehiclesT = {}
         local PedsT = {}
+        local LinesT = {}
         while PartyNightLights do
             local Hours = CLOCK.GET_CLOCK_HOURS()
             if Hours > 17 or Hours < 6 then
                 for index, vehicles in pairs(entities.get_all_vehicles_as_handles()) do
                     if not ENTITY.IS_ENTITY_DEAD(vehicles) then
                         if VehiclesT[vehicles] == nil then
-                            VehiclesT[vehicles] = {R = math.random(0, 255), G = math.random(0, 255), B = math.random(0, 255)}
+                            VehiclesT[vehicles] = {R = math.random(0, 255), G = math.random(0, 255), B = math.random(0, 255), Force = 20.0}
                         end
                     end
                 end
                 for index, values in pairs(VehiclesT) do
                     if VehiclesT[index] ~= nil then
-                        if ENTITY.DOES_ENTITY_EXIST(index) and not ENTITY.IS_ENTITY_DEAD(index) then
+                        if ENTITY.DOES_ENTITY_EXIST(index) then
                             local LightL = ENTITY.GET_ENTITY_BONE_INDEX_BY_NAME(index, "headlight_l")
                             local LightR = ENTITY.GET_ENTITY_BONE_INDEX_BY_NAME(index, "headlight_r")
                             local FVect = ENTITY.GET_ENTITY_FORWARD_VECTOR(index)
@@ -550,21 +585,33 @@ menu.toggle(MiscMenu, "Party Night Lights", {""}, "", function(Toggle)
                                 Pos.x = Pos.x - FVect.x
                                 Pos.y = Pos.y - FVect.y
                                 Pos.z = Pos.z - FVect.z
-                                GRAPHICS.DRAW_SPOT_LIGHT(Pos.x, Pos.y, Pos.z, FVect.x, FVect.y, FVect.z, values.R, values.G, values.B, 100.0, 20.0, 1.0, 20.0, 1.0)
+                                GRAPHICS.DRAW_SPOT_LIGHT(Pos.x, Pos.y, Pos.z, FVect.x, FVect.y, FVect.z, values.R, values.G, values.B, 100.0, values.Force, 1.0, 20.0, 1.0)
                             end
                             if LightR ~= 0 then
                                 local Pos = ENTITY.GET_WORLD_POSITION_OF_ENTITY_BONE(index, LightR)
                                 Pos.x = Pos.x - FVect.x
                                 Pos.y = Pos.y - FVect.y
                                 Pos.z = Pos.z - FVect.z
-                                GRAPHICS.DRAW_SPOT_LIGHT(Pos.x, Pos.y, Pos.z, FVect.x, FVect.y, FVect.z, values.R, values.G, values.B, 100.0, 20.0, 1.0, 20.0, 1.0)
+                                GRAPHICS.DRAW_SPOT_LIGHT(Pos.x, Pos.y, Pos.z, FVect.x, FVect.y, FVect.z, values.R, values.G, values.B, 100.0, values.Force, 1.0, 20.0, 1.0)
+                            end
+                            if LightL == 0 and LightR == 0 then
+                                local Pos = ENTITY.GET_ENTITY_COORDS(index)
+                                Pos.x = Pos.x + FVect.x
+                                Pos.y = Pos.y + FVect.y
+                                Pos.z = Pos.z + FVect.z
+                                GRAPHICS.DRAW_SPOT_LIGHT(Pos.x, Pos.y, Pos.z, FVect.x, FVect.y, FVect.z, values.R, values.G, values.B, 100.0, values.Force, 1.0, 20.0, 1.0)
+                            end
+                            if ENTITY.IS_ENTITY_DEAD(index) then
+                                values.Force = values.Force - 0.1
+                                if values.Force <= 0.0 then
+                                    PedsT[index] = nil
+                                end
                             end
                         else
                             VehiclesT[index] = nil
                         end
                     end
                 end
-                
                 for index, peds in pairs(entities.get_all_peds_as_handles()) do
                     if not ENTITY.IS_ENTITY_DEAD(peds) then
                         if PedsT[peds] == nil then
@@ -576,7 +623,38 @@ menu.toggle(MiscMenu, "Party Night Lights", {""}, "", function(Toggle)
                     if PedsT[index] ~= nil then
                         if ENTITY.DOES_ENTITY_EXIST(index) then
                             local Pos = ENTITY.GET_ENTITY_COORDS(index)
-                            GRAPHICS.DRAW_LIGHT_WITH_RANGE(Pos.x, Pos.y, Pos.z, values.R, values.G, values.B, 30.0, values.Force)
+                            local FVect = ENTITY.GET_ENTITY_FORWARD_VECTOR(index)
+                            GRAPHICS.DRAW_LIGHT_WITH_RANGE(Pos.x, Pos.y, Pos.z, values.R, values.G, values.B, 20.0, values.Force)
+                            local ToPos = {}
+                            ToPos.x = Pos.x - FVect.x
+                            ToPos.y = Pos.y - FVect.y
+                            ToPos.z = Pos.z - FVect.z
+                            --GRAPHICS.DRAW_SPOT_LIGHT(ToPos.x, ToPos.y, ToPos.z, FVect.x, FVect.y, FVect.z, values.R, values.G, values.B, 100.0, values.Force, 1.0, 20.0, 1.0)
+                            if PED.IS_PED_SHOOTING(index) then
+                                local GunEntityBullet = WEAPON.GET_CURRENT_PED_WEAPON_ENTITY_INDEX(index, false)
+                                if GunEntityBullet ~= 0 then
+                                    local GunMuzzleBoneID = ENTITY.GET_ENTITY_BONE_INDEX_BY_NAME(GunEntityBullet, "gun_muzzle")
+                                    if GunMuzzleBoneID ~= 0 then
+                                        local GunBoneCoords = ENTITY.GET_WORLD_POSITION_OF_ENTITY_BONE(GunEntityBullet, GunMuzzleBoneID)
+                                        local HitCoords = v3.new()
+                                        local HasHit = WEAPON.GET_PED_LAST_WEAPON_IMPACT_COORD(index, HitCoords)
+                                        if HasHit then
+                                            local IEdit = #LinesT + 1
+                                            LinesT[IEdit] = {}
+                                            LinesT[IEdit].StartX = GunBoneCoords.x
+                                            LinesT[IEdit].StartY = GunBoneCoords.y
+                                            LinesT[IEdit].StartZ = GunBoneCoords.z
+                                            LinesT[IEdit].EndX = HitCoords.x
+                                            LinesT[IEdit].EndY = HitCoords.y
+                                            LinesT[IEdit].EndZ = HitCoords.z
+                                            LinesT[IEdit].R = math.random(0, 255)
+                                            LinesT[IEdit].G = math.random(0, 255)
+                                            LinesT[IEdit].B = math.random(0, 255)
+                                            LinesT[IEdit].Alpha = 255
+                                        end
+                                    end
+                                end
+                            end 
                             if ENTITY.IS_ENTITY_DEAD(index) then
                                 values.Force = values.Force - 0.1
                                 if values.Force <= 0.0 then
@@ -588,6 +666,19 @@ menu.toggle(MiscMenu, "Party Night Lights", {""}, "", function(Toggle)
                         end
                     end
                 end
+                for i = 1, #LinesT do
+                    if LinesT[i] ~= nil then
+                        GRAPHICS.DRAW_LINE(LinesT[i].StartX, LinesT[i].StartY, LinesT[i].StartZ, LinesT[i].EndX, LinesT[i].EndY, LinesT[i].EndZ, LinesT[i].R, LinesT[i].G, LinesT[i].B, LinesT[i].Alpha)
+                        GRAPHICS.DRAW_LIGHT_WITH_RANGE(LinesT[i].EndX, LinesT[i].EndY, LinesT[i].EndZ, LinesT[i].R, LinesT[i].G, LinesT[i].B, 0.50, 155.0)
+                        LinesT[i].Alpha = LinesT[i].Alpha - 3
+                        if LinesT[i].Alpha <= 0 then
+                            --LinesT[i] = nil
+                            table.remove(LinesT, i)
+                        end
+                    end
+                end
+            else
+                Wait(1000)
             end
             Wait()
         end
@@ -610,7 +701,7 @@ end)
 menu.text_input(DevToolsMenu, "Copy Local Addr", {"copylocaladdr"}, "For devs.", function(OnChange)
     local TXTToNumber = SplitGlobals(OnChange)
     if TXTToNumber ~= nil then
-        util.copy_to_clipboard(string.format("%X", memory.script_local("gb_illicit_goods_resupply", TXTToNumber)))
+        util.copy_to_clipboard(string.format("%X", memory.script_local("fm_content_cargo", TXTToNumber)))
     end
 end)
 
@@ -677,27 +768,23 @@ menu.action(DevToolsMenu, "freemode Request Host", {}, "", function(Toggle)
     end)
 end)
 
-menu.toggle_loop(DevToolsMenu, "Test Freeze Mission", {}, "", function(Toggle)
-    util.spoof_script("freemode", function()
+menu.toggle_loop(DevToolsMenu, "Be Host of Mission Controller", {}, "", function(Toggle)
+    util.spoof_script("fm_mission_controller", function()
         if not NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
             NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
-            Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
+        end
+        if NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
+            NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
         end
     end)
-    util.spoof_script("am_launcher", function()
+    util.spoof_script("fm_mission_controller_2020", function()
         if not NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
             NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
-            Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
+        end
+        if NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT() then
+            NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
         end
     end)
-    if memory.read_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * 0)) == 294 then
-        --memory.write_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * 0), 167)
-        --memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * 0), 167)
-        --local PlayerID = PLAYER.PLAYER_ID()
-        --memory.write_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * PlayerID), 167)
-        --memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * PlayerID), 167)
-        --memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * PlayerID), 0)
-    end
 end)
 
 function CopyVehSettingsToAnotherVeh(CopyVehSetts, ToVeh)
@@ -746,9 +833,6 @@ function SetSupplyVehSettings(Veh, Health)
     VEHICLE.SET_VEHICLE_ALLOW_HOMING_MISSLE_LOCKON(Veh, false, false)
     VEHICLE.SET_VEHICLE_TYRES_CAN_BURST(Veh, false)
     VEHICLE.SET_VEHICLE_STRONG(Veh, true)
-    if InvincibleSupply then
-        ENTITY.SET_ENTITY_INVINCIBLE(Veh, true)
-    end
     for k = 0, 48 do
         local NumMods = entities.get_upgrade_max_value(Veh, k)
         if NumMods > 0 then
@@ -851,14 +935,19 @@ function ScriptHandler(ArgsTable)
                 if IsHost then
                     local PlayerPed = PLAYER.PLAYER_PED_ID()
                     local PlPos = ENTITY.GET_ENTITY_COORDS(PlayerPed)
-                    if ArgsTable.LocalsToEditT ~= nil then
-                        if ArgsTable.LocalsToEditT.Tick < ArgsTable.LocalsToEditT.MaxTick then
-                            ArgsTable.LocalsToEditT.Tick = ArgsTable.LocalsToEditT.Tick + 1
-                            if ArgsTable.LocalsToEditT.Tick >= ArgsTable.LocalsToEditT.MaxTick then
-                                if memory.read_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT.LocalAddr)) == ArgsTable.LocalsToEditT.Num then
-                                    memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT.LocalAddr), ArgsTable.LocalsToEditT.ToNum)
+                    if ArgsTable.LocalToEditT ~= nil then
+                        if ArgsTable.LocalToEditT.Tick < ArgsTable.LocalToEditT.MaxTick then
+                            ArgsTable.LocalToEditT.Tick = ArgsTable.LocalToEditT.Tick + 1
+                            if ArgsTable.LocalToEditT.Tick >= ArgsTable.LocalToEditT.MaxTick then
+                                if memory.read_int(memory.script_local(ScriptName, ArgsTable.LocalToEditT.LocalAddr)) == ArgsTable.LocalToEditT.Num then
+                                    memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalToEditT.LocalAddr), ArgsTable.LocalToEditT.ToNum)
                                 end
                             end
+                        end
+                    end
+                    if ArgsTable.LocalsToEditT ~= nil then
+                        for k = 1, #ArgsTable.LocalsToEditT do
+                            memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr), ArgsTable.LocalsToEditT[k].ToNum)
                         end
                     end
                     if AlwaysBestSellMission then
@@ -1030,11 +1119,18 @@ function ScriptHandler(ArgsTable)
                                                     local Blip = HUD.GET_BLIP_FROM_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle)
                                                     if Blip == 0 then
                                                         Blip = HUD.ADD_BLIP_FOR_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle)
-                                                        HUD.SET_BLIP_SPRITE(Blip, 0)
+                                                        --HUD.SET_BLIP_SPRITE(Blip, 0)
                                                         HUD.SET_BLIP_COLOUR(Blip, 3)
                                                         ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle = Blip
                                                     end
                                                 end
+                                            end
+                                        end
+                                    end
+                                    if InvincibleSupply then
+                                        if ArgsTable.Vehicles[k].IsSupply ~= nil then
+                                            if ArgsTable.Vehicles[k].IsSupply then
+                                                ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Vehicles[k].VehiclesT[i].Handle, true)
                                             end
                                         end
                                     end
@@ -1385,24 +1481,33 @@ function ScriptHandler(ArgsTable)
                                 end
                                 if ArgsTable.Objects[j].ObjectsT[i].Handle ~= 0 then
                                     if BringMissionCloser then
-                                        if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
-                                            local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
-                                            if FoundCoords then
-                                                if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
-                                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle) then
-                                                        ENTITY.SET_ENTITY_COORDS(ArgsTable.Objects[j].ObjectsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
-                                                        ENTITY.SET_ENTITY_HEADING(ArgsTable.Objects[j].ObjectsT[i].Handle, OutHeading)
+                                        if not ENTITY.IS_ENTITY_ATTACHED_TO_ANY_PED(ArgsTable.Objects[j].ObjectsT[i].Handle) then
+                                            if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
+                                                local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                                if FoundCoords then
+                                                    if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                        if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle) then
+                                                            ENTITY.SET_ENTITY_COORDS(ArgsTable.Objects[j].ObjectsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                            ENTITY.SET_ENTITY_HEADING(ArgsTable.Objects[j].ObjectsT[i].Handle, OutHeading)
+                                                        end
+                                                    end
+                                                end
+                                                if AddBlipForBringedEntity then
+                                                    local Blip = HUD.GET_BLIP_FROM_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle)
+                                                    if Blip == 0 then
+                                                        Blip = HUD.ADD_BLIP_FOR_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle)
+                                                        HUD.SET_BLIP_SPRITE(Blip, 586)
+                                                        HUD.SET_BLIP_COLOUR(Blip, 2)
+                                                        ArgsTable.Objects[j].ObjectsT[i].BlipHandle = Blip
                                                     end
                                                 end
                                             end
-                                            if AddBlipForBringedEntity then
-                                                local Blip = HUD.GET_BLIP_FROM_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle)
-                                                if Blip == 0 then
-                                                    Blip = HUD.ADD_BLIP_FOR_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle)
-                                                    HUD.SET_BLIP_SPRITE(Blip, 586)
-                                                    HUD.SET_BLIP_COLOUR(Blip, 2)
-                                                    ArgsTable.Objects[j].ObjectsT[i].BlipHandle = Blip
-                                                end
+                                        end
+                                    end
+                                    if InvincibleSupply then
+                                        if ArgsTable.Objects[j].IsSupply ~= nil then
+                                            if ArgsTable.Objects[j].IsSupply then
+                                                ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Objects[j].ObjectsT[i].Handle, true)
                                             end
                                         end
                                     end
@@ -1419,9 +1524,9 @@ function ScriptHandler(ArgsTable)
                 end
             end
         else
-            if ArgsTable.LocalsToEditT ~= nil then
-                if ArgsTable.LocalsToEditT.Tick > 0 then
-                    ArgsTable.LocalsToEditT.Tick = 0
+            if ArgsTable.LocalToEditT ~= nil then
+                if ArgsTable.LocalToEditT.Tick > 0 then
+                    ArgsTable.LocalToEditT.Tick = 0
                 end
             end
             for k = 1, #ArgsTable.Vehicles do

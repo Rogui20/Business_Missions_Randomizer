@@ -129,7 +129,8 @@ BikerSellT = {
         UpgradeType = 1,
         BringTargets = 200.0,
         HealthToGive = 50000,
-        VehiclesT = {}
+        VehiclesT = {},
+        IsSupply = true
     }},
     Peds = {{
         MaxLen = 0
@@ -339,7 +340,8 @@ ContrabandSellT = {
         UpgradeType = 0,
         BringTargets = 200.0,
         HealthToGive = 50000,
-        VehiclesT = {}
+        VehiclesT = {},
+        IsSupply = true
     }},
     Peds = {{
         MaxLen = 0
@@ -373,7 +375,8 @@ GunrunningT = {
         UpgradeType = 0,
         BringTargets = 200.0,
         HealthToGive = 50000,
-        VehiclesT = {}
+        VehiclesT = {},
+        IsSupply = true
     },
     {
         MaxLen = 16,
@@ -407,7 +410,8 @@ GunrunningT = {
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
-        SpawnObjectsT = {}
+        SpawnObjectsT = {},
+        IsSupply = true
     }}
 }
 

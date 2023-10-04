@@ -75,6 +75,11 @@ menu.toggle(MissionEnhancerMenu, "More Supply Vehicle Health", {}, "Challenging.
 	MoreSupplyVehHealth = Toggle
 end)
 
+local InvincibleSupply = false
+menu.toggle(MissionEnhancerMenu, "Invincible Supply Entities", {}, "", function(Toggle)
+	InvincibleSupply = Toggle
+end)
+
 local BringTargetsCloser = false
 menu.toggle(MissionEnhancerMenu, "Bring Far Targets Closer", {}, "To make it less boring.", function(Toggle)
 	BringTargetsCloser = Toggle
@@ -731,8 +736,8 @@ function CopyVehSettingsToAnotherVeh(CopyVehSetts, ToVeh)
 end
 
 function SetSupplyVehSettings(Veh, Health)
-    ENTITY.SET_ENTITY_MAX_HEALTH(Veh, Health)
-	ENTITY.SET_ENTITY_HEALTH(Veh, Health)
+    ENTITY.SET_ENTITY_MAX_HEALTH(Veh, Health + 50000)
+	ENTITY.SET_ENTITY_HEALTH(Veh, Health + 50000)
 	VEHICLE.SET_VEHICLE_ENGINE_HEALTH(Veh, 50000 + Health)
 	VEHICLE.SET_PLANE_ENGINE_HEALTH(Veh, 50000 + Health)
 	VEHICLE.SET_VEHICLE_PETROL_TANK_HEALTH(Veh, 50000 + Health)
@@ -741,6 +746,9 @@ function SetSupplyVehSettings(Veh, Health)
     VEHICLE.SET_VEHICLE_ALLOW_HOMING_MISSLE_LOCKON(Veh, false, false)
     VEHICLE.SET_VEHICLE_TYRES_CAN_BURST(Veh, false)
     VEHICLE.SET_VEHICLE_STRONG(Veh, true)
+    if InvincibleSupply then
+        ENTITY.SET_ENTITY_INVINCIBLE(Veh, true)
+    end
     for k = 0, 48 do
         local NumMods = entities.get_upgrade_max_value(Veh, k)
         if NumMods > 0 then
@@ -1004,7 +1012,7 @@ function ScriptHandler(ArgsTable)
                                             local CanSetCoords = true
                                             local Ped = VEHICLE.GET_PED_IN_VEHICLE_SEAT(ArgsTable.Vehicles[k].VehiclesT[i].Handle, -1, false)
                                             if Ped ~= 0 then
-                                                if not PED.IS_PED_A_PLAYER(Ped) then
+                                                if PED.IS_PED_A_PLAYER(Ped) then
                                                     CanSetCoords = false
                                                 end
                                             end

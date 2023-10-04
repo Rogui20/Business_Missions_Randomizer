@@ -63,7 +63,7 @@ menu.toggle(MissionEnhancerMenu, "Enhance Missions", {}, "Let it fun.", function
 end, ImproveMissions)
 
 local AlwaysBestSellMission = false
-menu.toggle(MissionEnhancerMenu, "Get Best Sell Mission", {}, "", function(Toggle)
+menu.toggle(MissionEnhancerMenu, "Always Get Best Sell Mission", {}, "", function(Toggle)
 	AlwaysBestSellMission = Toggle
 end)
 local CreateSupplies = false

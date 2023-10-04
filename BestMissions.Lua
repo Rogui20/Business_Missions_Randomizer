@@ -75,24 +75,6 @@ menu.toggle(MissionEnhancerMenu, "Enhance Missions", {}, "Let it fun.", function
 	end
 end, ImproveMissions)
 
-local TestToggle = false
-menu.toggle(MissionEnhancerMenu, "Test", {}, "", function(Toggle)
-    TestToggle = Toggle
-    while TestToggle do
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("fm_content_cargo")) > 0 then
-            for i = 0, 30 do
-                memory.write_float(memory.script_local("fm_content_cargo", 244+1036+1+1+4 + 12 * i), 962.31896972656)
-                memory.write_float(memory.script_local("fm_content_cargo", 244+1036+1+1+5 + 12 * i), -645.20697021484)
-                memory.write_float(memory.script_local("fm_content_cargo", 244+1036+1+1+6 + 12 * i), 57.360958099365)
-                memory.write_float(memory.script_local("fm_content_cargo", 244+1036+1+1+7 + 12 * i), 36.447971343994)
-            end
-        end
-        Wait()
-    end
-end, TestToggle)
-
--- x = 962.31896972656, y = -645.20697021484, z = 57.360958099365, heading = 36.447971343994
-
 local AlwaysBestSellMission = false
 menu.toggle(MissionEnhancerMenu, "Always Get Best Sell Mission", {}, "", function(Toggle)
 	AlwaysBestSellMission = Toggle
@@ -630,9 +612,12 @@ menu.toggle(MiscMenu, "Party Night Lights", {""}, "", function(Toggle)
                             ToPos.y = Pos.y - FVect.y
                             ToPos.z = Pos.z - FVect.z
                             --GRAPHICS.DRAW_SPOT_LIGHT(ToPos.x, ToPos.y, ToPos.z, FVect.x, FVect.y, FVect.z, values.R, values.G, values.B, 100.0, values.Force, 1.0, 20.0, 1.0)
-                            if PED.IS_PED_SHOOTING(index) then
-                                local GunEntityBullet = WEAPON.GET_CURRENT_PED_WEAPON_ENTITY_INDEX(index, false)
-                                if GunEntityBullet ~= 0 then
+                            local GunEntityBullet = WEAPON.GET_CURRENT_PED_WEAPON_ENTITY_INDEX(index, false)
+                            if GunEntityBullet ~= 0 then
+                                local WP_FVect, WP_RVect, WP_UpVect, WP_Vect = v3.new(), v3.new(), v3.new(), v3.new()
+                                ENTITY.GET_ENTITY_MATRIX(GunEntityBullet, WP_FVect, WP_RVect, WP_UpVect, WP_Vect)
+                                GRAPHICS.DRAW_SPOT_LIGHT(WP_Vect.x, WP_Vect.y, WP_Vect.z, WP_RVect.x, WP_RVect.y, WP_RVect.z, values.R, values.G, values.B, 100.0, values.Force, 1.0, 10.0, 1.0)
+                                if PED.IS_PED_SHOOTING(index) then
                                     local GunMuzzleBoneID = ENTITY.GET_ENTITY_BONE_INDEX_BY_NAME(GunEntityBullet, "gun_muzzle")
                                     if GunMuzzleBoneID ~= 0 then
                                         local GunBoneCoords = ENTITY.GET_WORLD_POSITION_OF_ENTITY_BONE(GunEntityBullet, GunMuzzleBoneID)
@@ -651,10 +636,11 @@ menu.toggle(MiscMenu, "Party Night Lights", {""}, "", function(Toggle)
                                             LinesT[IEdit].G = math.random(0, 255)
                                             LinesT[IEdit].B = math.random(0, 255)
                                             LinesT[IEdit].Alpha = 255
+                                            
                                         end
                                     end
                                 end
-                            end 
+                            end
                             if ENTITY.IS_ENTITY_DEAD(index) then
                                 values.Force = values.Force - 0.1
                                 if values.Force <= 0.0 then
@@ -785,6 +771,11 @@ menu.toggle_loop(DevToolsMenu, "Be Host of Mission Controller", {}, "", function
             NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
         end
     end)
+end)
+
+menu.action(DevToolsMenu, "B Battle2 Args", {}, "", function(Toggle)
+    memory.write_int(memory.script_global(SplitGlobals("Global_2756336.f_183")), 1)
+    memory.write_int(memory.script_global(SplitGlobals("Global_2756336.f_184")), 2)
 end)
 
 function CopyVehSettingsToAnotherVeh(CopyVehSetts, ToVeh)

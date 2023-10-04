@@ -41,30 +41,31 @@ local AiLikeHateAiHateRel = "rgFM_AiLike_HateAiHate"
 local AiHateAiHateRel = "rgFM_HateAiHate"
 local AiHateEveryone = "rgFM_HateEveryOne"
 
-
-
 local MissionEnhancerMenu = menu.list(menu.my_root(), "Mission Enhancer", {}, "Randomize and enhance tools.")
 
-
-local ImproveMissions = true
-menu.toggle(MissionEnhancerMenu, "Improves Missions", {}, "Let it fun.", function(Toggle)
+local ImproveMissions = false
+menu.toggle(MissionEnhancerMenu, "Enhance Missions", {}, "Let it fun.", function(Toggle)
 	ImproveMissions = Toggle
 	if ImproveMissions then
 		while ImproveMissions do
-            --ScriptHandler(GunrunningT)
-            --ScriptHandler(ContrabandSellT)
-            --ScriptHandler(ContrabandBuyT)
-            --ScriptHandler(CayoPericoHeistT)
-            --ScriptHandler(CasinoHeistT)
-            --ScriptHandler(BikerResupplyT)
-            --ScriptHandler(BikerSellT)
-            --ScriptHandler(BusinessBattlesT)
-            --ScriptHandler(BusinessBattles2T)
+            ScriptHandler(GunrunningT)
+            ScriptHandler(ContrabandSellT)
+            ScriptHandler(ContrabandBuyT)
+            ScriptHandler(CayoPericoHeistT)
+            ScriptHandler(CasinoHeistT)
+            ScriptHandler(BikerResupplyT)
+            ScriptHandler(BikerSellT)
+            ScriptHandler(BusinessBattlesT)
+            ScriptHandler(BusinessBattles2T)
             Wait()
         end
 	end
-end)
+end, ImproveMissions)
 
+local AlwaysBestSellMission = false
+menu.toggle(MissionEnhancerMenu, "Get Best Sell Mission", {}, "", function(Toggle)
+	AlwaysBestSellMission = Toggle
+end)
 local CreateSupplies = false
 menu.toggle(MissionEnhancerMenu, "Auto Create Supplies", {}, "", function(Toggle)
 	CreateSupplies = Toggle
@@ -80,7 +81,7 @@ menu.toggle(MissionEnhancerMenu, "Bring Far Targets Closer", {}, "To make it les
 end)
 
 local BringMissionCloser = false
-menu.toggle(MissionEnhancerMenu, "Bring All Far Away Entities Closer", {"bringallfarents"}, "Fun!!!", function(Toggle)
+menu.toggle(MissionEnhancerMenu, "TP All Far Away Entities Closer", {"bringallfarents"}, "Fun!!!", function(Toggle)
 	BringMissionCloser = Toggle
 end, BringMissionCloser)
 
@@ -496,8 +497,9 @@ menu.action(SecuroServAppsMenu, "Office App", {}, "", function(Toggle)
     StartAppScript("appSecuroServ", 4592, -1, 88)
 end)
 
---[[
+
 local MiscMenu = menu.list(menu.my_root(), "Misc", {}, "")
+--[[
 menu.toggle_loop(MiscMenu, "B Battle Collect All 8 Crates", {""}, "", function(toggle)
 	local Pickups = entities.get_all_pickups_as_handles()
 	for index, crates in ipairs(Pickups) do
@@ -516,6 +518,77 @@ menu.action(MiscMenu, "B Battle2 Args", {}, "", function(Toggle)
     memory.write_int(memory.script_global(SplitGlobals("Global_2756336.f_184")), 2)
 end)
 ]]
+local PartyNightLights = false
+menu.toggle(MiscMenu, "Party Night Lights", {""}, "", function(Toggle)
+    PartyNightLights = Toggle
+    if PartyNightLights then
+        local VehiclesT = {}
+        local PedsT = {}
+        while PartyNightLights do
+            local Hours = CLOCK.GET_CLOCK_HOURS()
+            if Hours > 17 or Hours < 6 then
+                for index, vehicles in pairs(entities.get_all_vehicles_as_handles()) do
+                    if not ENTITY.IS_ENTITY_DEAD(vehicles) then
+                        if VehiclesT[vehicles] == nil then
+                            VehiclesT[vehicles] = {R = math.random(0, 255), G = math.random(0, 255), B = math.random(0, 255)}
+                        end
+                    end
+                end
+                for index, values in pairs(VehiclesT) do
+                    if VehiclesT[index] ~= nil then
+                        if ENTITY.DOES_ENTITY_EXIST(index) and not ENTITY.IS_ENTITY_DEAD(index) then
+                            local LightL = ENTITY.GET_ENTITY_BONE_INDEX_BY_NAME(index, "headlight_l")
+                            local LightR = ENTITY.GET_ENTITY_BONE_INDEX_BY_NAME(index, "headlight_r")
+                            local FVect = ENTITY.GET_ENTITY_FORWARD_VECTOR(index)
+                            if LightL ~= 0 then
+                                local Pos = ENTITY.GET_WORLD_POSITION_OF_ENTITY_BONE(index, LightL)
+                                Pos.x = Pos.x - FVect.x
+                                Pos.y = Pos.y - FVect.y
+                                Pos.z = Pos.z - FVect.z
+                                GRAPHICS.DRAW_SPOT_LIGHT(Pos.x, Pos.y, Pos.z, FVect.x, FVect.y, FVect.z, values.R, values.G, values.B, 100.0, 20.0, 1.0, 20.0, 1.0)
+                            end
+                            if LightR ~= 0 then
+                                local Pos = ENTITY.GET_WORLD_POSITION_OF_ENTITY_BONE(index, LightR)
+                                Pos.x = Pos.x - FVect.x
+                                Pos.y = Pos.y - FVect.y
+                                Pos.z = Pos.z - FVect.z
+                                GRAPHICS.DRAW_SPOT_LIGHT(Pos.x, Pos.y, Pos.z, FVect.x, FVect.y, FVect.z, values.R, values.G, values.B, 100.0, 20.0, 1.0, 20.0, 1.0)
+                            end
+                        else
+                            VehiclesT[index] = nil
+                        end
+                    end
+                end
+                
+                for index, peds in pairs(entities.get_all_peds_as_handles()) do
+                    if not ENTITY.IS_ENTITY_DEAD(peds) then
+                        if PedsT[peds] == nil then
+                            PedsT[peds] = {R = math.random(0, 255), G = math.random(0, 255), B = math.random(0, 255), Force = 10.0}
+                        end
+                    end
+                end
+                for index, values in pairs(PedsT) do
+                    if PedsT[index] ~= nil then
+                        if ENTITY.DOES_ENTITY_EXIST(index) then
+                            local Pos = ENTITY.GET_ENTITY_COORDS(index)
+                            GRAPHICS.DRAW_LIGHT_WITH_RANGE(Pos.x, Pos.y, Pos.z, values.R, values.G, values.B, 30.0, values.Force)
+                            if ENTITY.IS_ENTITY_DEAD(index) then
+                                values.Force = values.Force - 0.1
+                                if values.Force <= 0.0 then
+                                    PedsT[index] = nil
+                                end
+                            end
+                        else
+                            PedsT[index] = nil
+                        end
+                    end
+                end
+            end
+            Wait()
+        end
+    end
+end)
+
 local DevToolsMenu = menu.list(menu.my_root(), "DEV Tools", {}, "")
 menu.action(DevToolsMenu, "Copy Coords And Heading", {}, "", function(Toggle)
     local Coords = ENTITY.GET_ENTITY_COORDS(PLAYER.PLAYER_PED_ID())
@@ -778,6 +851,11 @@ function ScriptHandler(ArgsTable)
                                     memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT.LocalAddr), ArgsTable.LocalsToEditT.ToNum)
                                 end
                             end
+                        end
+                    end
+                    if AlwaysBestSellMission then
+                        if ArgsTable.BestSellMission ~= nil then
+                            memory.write_int(memory.script_local(ScriptName, ArgsTable.BestSellMission.LocalAddr), ArgsTable.BestSellMission.ToNum)
                         end
                     end
                     for k = 1, #ArgsTable.Vehicles do

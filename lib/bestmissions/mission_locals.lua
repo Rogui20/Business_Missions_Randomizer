@@ -56,8 +56,7 @@ local Biker_Objects = {
 BikerResupplyT = {
     AllowedToEdit = true,
     ScriptName = "gb_illicit_goods_resupply",
-    LocalsToEditT = {Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_932.f_5"), Num = 9, ToNum = 7},
-    BestSellMission = {LocalAddr = SplitGlobals("Local_699.f_17"), ToNum = 0},
+    LocalToEditT = {Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_932.f_5"), Num = 9, ToNum = 7},
     Vehicles = {{
         MaxLen = 8,
         LocalAddr = SplitGlobals("Local_932.f_33"),
@@ -68,7 +67,8 @@ BikerResupplyT = {
         UpgradeType = 1,
         BringTargets = 200.0,
         HealthToGive = 50000,
-        VehiclesT = {}
+        VehiclesT = {},
+        IsSupply = true
     },
     {
         MaxLen = 10,
@@ -102,7 +102,8 @@ BikerResupplyT = {
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
-        SpawnObjectsT = {}
+        SpawnObjectsT = {},
+        IsSupply = true
     }}
 }
 
@@ -117,6 +118,7 @@ local BikerSell_DisabledVehs = {
 BikerSellT = {
     AllowedToEdit = true,
     ScriptName = "gb_biker_contraband_sell",
+    BestSellMission = {LocalAddr = SplitGlobals("Local_699.f_17"), ToNum = 0},
     Vehicles = {{
         MaxLen = 4,
         LocalAddr = SplitGlobals("Local_699.f_59"),
@@ -191,6 +193,15 @@ CasinoHeistT = {
         BringTargets = nil,
         ObjectsT = {},
         SpawnObjectsT = {}
+    }},
+    PropsToBring = {{
+        MaxLen = 25,
+        LocalAddr = SplitGlobals("Local_4275.f_1188[bVar0 /*4*/]"),
+        NextOffset = 4,
+        DecreaseI = 1,
+        SelectedModels = nil,
+        DisabledModels = nil,
+        BringTargets = nil,
     }}
 }
 
@@ -521,5 +532,37 @@ BusinessBattles2T = {
         BringTargets = nil,
         ObjectsT = {},
         SpawnObjectsT = {}
+    }}
+}
+
+ContrabandBuy2T = {
+    AllowedToEdit = true,
+    ScriptName = "fm_content_cargo",
+    LocalsToEditT = {{LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
+    Vehicles = {{
+        MaxLen = 23,
+        LocalAddr = SplitGlobals("Local_5621.f_723[iParam0 /*8*/]"),
+        NextOffset = 8,
+        DecreaseI = 1,
+        SelectedModels = VehsList,
+        DisabledModels = nil,
+        UpgradeType = 0,
+        BringTargets = 200.0,
+        HealthToGive = 50000,
+        VehiclesT = {}
+    }},
+    Peds = {{
+        MaxLen = 26,
+        LocalAddr = SplitGlobals("Local_5621.f_72[iParam0 /*25*/]"),
+        NextOffset = 25,
+        DecreaseI = 1,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    }},
+    Objects = {{
+        MaxLen = 0
     }}
 }

@@ -109,6 +109,11 @@ menu.toggle(MissionEnhancerMenu, "TP All Far Props Closer", {"bringallfarprops"}
 	BringPropsCloser = Toggle
 end, BringPropsCloser)
 
+local BringEntsLOSBased = false
+menu.toggle(MissionEnhancerMenu, "TP All If Not LOS", {"bringifnotlos"}, "", function(Toggle)
+	BringEntsLOSBased = Toggle
+end, BringEntsLOSBased)
+
 local AddBlipForBringedEntity = false
 menu.toggle(MissionEnhancerMenu, "Add Blip To Teleported Entities", {}, "To locate.", function(Toggle)
 	AddBlipForBringedEntity = Toggle
@@ -538,7 +543,25 @@ menu.action(SecuroServAppsMenu, "Office App", {}, "", function(Toggle)
     StartAppScript("appSecuroServ", 4592, -1, 88)
 end)
 
-
+local UtilsMenu = menu.list(menu.my_root(), "Utils", {}, "")
+menu.action(UtilsMenu, "Clear Blips", {}, "", function(Toggle)
+    for i = 1, HUD.GET_NUMBER_OF_ACTIVE_BLIPS() do
+        local Blip = HUD.GET_NEXT_BLIP_INFO_ID(1)
+        if Blip ~= 0 then
+            local Colour = HUD.GET_BLIP_COLOUR(Blip)
+            if Colour == 1 or Colour == 3 then
+                util.remove_blip(Blip)
+            end
+        end
+        local Blip2 = HUD.GET_NEXT_BLIP_INFO_ID(586)
+        if Blip2 ~= 0 then
+            local Colour = HUD.GET_BLIP_COLOUR(Blip2)
+            if Colour == 2 then
+                util.remove_blip(Blip2)
+            end
+        end
+    end
+end)
 local MiscMenu = menu.list(menu.my_root(), "Misc", {}, "")
 --[[
 menu.toggle_loop(MiscMenu, "B Battle Collect All 8 Crates", {""}, "", function(toggle)
@@ -995,7 +1018,16 @@ function ScriptHandler(ArgsTable)
                     end
                     if ArgsTable.LocalsToEditT ~= nil then
                         for k = 1, #ArgsTable.LocalsToEditT do
-                            memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr), ArgsTable.LocalsToEditT[k].ToNum)
+                            if ArgsTable.LocalsToEditT[k].MaxTick == nil and ArgsTable.LocalsToEditT[k].Num == nil and ArgsTable.LocalsToEditT[k].Tick then
+                                memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr), ArgsTable.LocalsToEditT[k].ToNum)
+                            else
+                                ArgsTable.LocalsToEditT[k].Tick = ArgsTable.LocalsToEditT[k].Tick + 1
+                                if ArgsTable.LocalsToEditT[k].Tick >= ArgsTable.LocalsToEditT[k].MaxTick then
+                                    if memory.read_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr)) == ArgsTable.LocalsToEditT[k].Num then
+                                        memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr), ArgsTable.LocalsToEditT[k].ToNum)
+                                    end
+                                end
+                            end
                         end
                     end
                     if AlwaysBestSellMission then
@@ -1150,7 +1182,11 @@ function ScriptHandler(ArgsTable)
                                         end
                                     end
                                     if BringMissionCloser then
-                                        if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
+                                        local ExtraCondition = false
+                                        if BringEntsLOSBased then
+                                            ExtraCondition = not ENTITY.HAS_ENTITY_CLEAR_LOS_TO_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle, PlayerPed, 17)
+                                        end
+                                        if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) or ExtraCondition then
                                             local CanSetCoords = true
                                             local Ped = VEHICLE.GET_PED_IN_VEHICLE_SEAT(ArgsTable.Vehicles[k].VehiclesT[i].Handle, -1, false)
                                             if Ped ~= 0 then
@@ -1169,14 +1205,16 @@ function ScriptHandler(ArgsTable)
                                                     end
                                                 end
                                                 if AddBlipForBringedEntity then
-                                                    local Blip = HUD.GET_BLIP_FROM_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle)
-                                                    if Blip == 0 then
-                                                        Blip = HUD.ADD_BLIP_FOR_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle)
-                                                        --HUD.SET_BLIP_SPRITE(Blip, 0)
-                                                        HUD.SET_BLIP_COLOUR(Blip, 3)
-                                                        ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle = Blip
-                                                    else
-                                                        ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle = Blip
+                                                    if ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle == nil then
+                                                        local Blip = HUD.GET_BLIP_FROM_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle)
+                                                        if Blip == 0 then
+                                                            Blip = HUD.ADD_BLIP_FOR_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle)
+                                                            --HUD.SET_BLIP_SPRITE(Blip, 0)
+                                                            HUD.SET_BLIP_COLOUR(Blip, 3)
+                                                            ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle = Blip
+                                                        else
+                                                            ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle = Blip
+                                                        end
                                                     end
                                                 end
                                             end
@@ -1189,7 +1227,7 @@ function ScriptHandler(ArgsTable)
                                             end
                                         end
                                     end
-                                    if ENTITY.IS_ENTITY_DEAD(ArgsTable.Vehicles[k].VehiclesT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.Vehicles[k].VehiclesT[i].Handle) or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
+                                    if ENTITY.IS_ENTITY_DEAD(ArgsTable.Vehicles[k].VehiclesT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then -- or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
                                         if ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle ~= nil then
                                             util.remove_blip(ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle)
                                         end
@@ -1396,8 +1434,10 @@ function ScriptHandler(ArgsTable)
                                                             else
                                                                 local OutPos, FoundCoords = FindRightSpawnPed(PlPos.x, PlPos.y, PlPos.z, 10, ArgsTable.Peds[j].PedsT[i].BringTargets)
                                                                 if FoundCoords then
-                                                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Peds[j].PedsT[i].Handle) then
-                                                                        ENTITY.SET_ENTITY_COORDS(ArgsTable.Peds[j].PedsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                                    if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, 0, true) then
+                                                                        if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Peds[j].PedsT[i].Handle) then
+                                                                            ENTITY.SET_ENTITY_COORDS(ArgsTable.Peds[j].PedsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                                        end
                                                                     end
                                                                 end
                                                             end
@@ -1408,7 +1448,11 @@ function ScriptHandler(ArgsTable)
                                         end
                                     end
                                     if BringMissionCloser then
-                                        if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.Peds[j].PedsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
+                                        local ExtraCondition = false
+                                        if BringEntsLOSBased then
+                                            ExtraCondition = not ENTITY.HAS_ENTITY_CLEAR_LOS_TO_ENTITY(ArgsTable.Peds[j].PedsT[i].Handle, PlayerPed, 17)
+                                        end
+                                        if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.Peds[j].PedsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) or ExtraCondition then
                                             if PED.IS_PED_IN_ANY_VEHICLE(ArgsTable.Peds[j].PedsT[i].Handle, false) then
                                                 local Veh = PED.GET_VEHICLE_PED_IS_IN(ArgsTable.Peds[j].PedsT[i].Handle, false)
                                                 if Veh ~= 0 then
@@ -1425,8 +1469,10 @@ function ScriptHandler(ArgsTable)
                                             else
                                                 local OutPos, FoundCoords = FindRightSpawnPed(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
                                                 if FoundCoords then
-                                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Peds[j].PedsT[i].Handle) then
-                                                        ENTITY.SET_ENTITY_COORDS(ArgsTable.Peds[j].PedsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                    if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, 0, true) then
+                                                        if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Peds[j].PedsT[i].Handle) then
+                                                            ENTITY.SET_ENTITY_COORDS(ArgsTable.Peds[j].PedsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                        end
                                                     end
                                                 end
                                             end
@@ -1439,7 +1485,7 @@ function ScriptHandler(ArgsTable)
                                             end
                                         end
                                     end
-                                    if ENTITY.IS_ENTITY_DEAD(ArgsTable.Peds[j].PedsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.Peds[j].PedsT[i].Handle) or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.Peds[j].PedsT[i].Handle) then
+                                    if ENTITY.IS_ENTITY_DEAD(ArgsTable.Peds[j].PedsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.Peds[j].PedsT[i].Handle) then -- or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.Peds[j].PedsT[i].Handle) then
                                         if ArgsTable.Peds[j].PedsT[i].BlipHandle ~= nil then
                                             util.remove_blip(ArgsTable.Peds[j].PedsT[i].BlipHandle)
                                         end
@@ -1579,25 +1625,50 @@ function ScriptHandler(ArgsTable)
                                 if ArgsTable.Objects[j].ObjectsT[i].Handle ~= 0 then
                                     if BringMissionCloser then
                                         if not ENTITY.IS_ENTITY_ATTACHED_TO_ANY_PED(ArgsTable.Objects[j].ObjectsT[i].Handle) then
-                                            if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
-                                                local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
-                                                if FoundCoords then
-                                                    if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                            local ExtraCondition = false
+                                            if BringEntsLOSBased then
+                                                ExtraCondition = not ENTITY.HAS_ENTITY_CLEAR_LOS_TO_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle, PlayerPed, 17)
+                                            end
+                                            if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) or ExtraCondition then
+                                                local OutPos2, FoundCoords2 = FindRightSpawnPed(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                                if FoundCoords2 then
+                                                    if not MISC.IS_POSITION_OCCUPIED(OutPos2.x, OutPos2.y, OutPos2.z, 0.5, false, true, true, true, false, PlayerPed, false) then
                                                         if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle) then
-                                                            ENTITY.SET_ENTITY_COORDS(ArgsTable.Objects[j].ObjectsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
-                                                            ENTITY.SET_ENTITY_HEADING(ArgsTable.Objects[j].ObjectsT[i].Handle, OutHeading)
+                                                            ENTITY.SET_ENTITY_COORDS(ArgsTable.Objects[j].ObjectsT[i].Handle, OutPos2.x, OutPos2.y, OutPos2.z)
+                                                        end
+                                                    else
+                                                        local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                                        if FoundCoords then
+                                                            if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, PlayerPed, false) then
+                                                                if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle) then
+                                                                    ENTITY.SET_ENTITY_COORDS(ArgsTable.Objects[j].ObjectsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                                    ENTITY.SET_ENTITY_HEADING(ArgsTable.Objects[j].ObjectsT[i].Handle, OutHeading)
+                                                                end
+                                                            end
+                                                        end
+                                                    end
+                                                else
+                                                    local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                                    if FoundCoords then
+                                                        if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, PlayerPed, false) then
+                                                            if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle) then
+                                                                ENTITY.SET_ENTITY_COORDS(ArgsTable.Objects[j].ObjectsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                                ENTITY.SET_ENTITY_HEADING(ArgsTable.Objects[j].ObjectsT[i].Handle, OutHeading)
+                                                            end
                                                         end
                                                     end
                                                 end
                                                 if AddBlipForBringedEntity then
-                                                    local Blip = HUD.GET_BLIP_FROM_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle)
-                                                    if Blip == 0 then
-                                                        Blip = HUD.ADD_BLIP_FOR_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle)
-                                                        HUD.SET_BLIP_SPRITE(Blip, 586)
-                                                        HUD.SET_BLIP_COLOUR(Blip, 2)
-                                                        ArgsTable.Objects[j].ObjectsT[i].BlipHandle = Blip
-                                                    else
-                                                        ArgsTable.Objects[j].ObjectsT[i].BlipHandle = Blip
+                                                    if ArgsTable.Objects[j].ObjectsT[i].BlipHandle == nil then
+                                                        local Blip = HUD.GET_BLIP_FROM_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle)
+                                                        if Blip == 0 then
+                                                            Blip = HUD.ADD_BLIP_FOR_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle)
+                                                            HUD.SET_BLIP_SPRITE(Blip, 586)
+                                                            HUD.SET_BLIP_COLOUR(Blip, 2)
+                                                            ArgsTable.Objects[j].ObjectsT[i].BlipHandle = Blip
+                                                        else
+                                                            ArgsTable.Objects[j].ObjectsT[i].BlipHandle = Blip
+                                                        end
                                                     end
                                                 end
                                             end
@@ -1610,7 +1681,7 @@ function ScriptHandler(ArgsTable)
                                             end
                                         end
                                     end
-                                    if ENTITY.IS_ENTITY_DEAD(ArgsTable.Objects[j].ObjectsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.Objects[j].ObjectsT[i].Handle) or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle) then
+                                    if ENTITY.IS_ENTITY_DEAD(ArgsTable.Objects[j].ObjectsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.Objects[j].ObjectsT[i].Handle) then --or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle) then
                                         if ArgsTable.Objects[j].ObjectsT[i].BlipHandle ~= nil then
                                             util.remove_blip(ArgsTable.Objects[j].ObjectsT[i].BlipHandle)
                                         end
@@ -1633,7 +1704,9 @@ function ScriptHandler(ArgsTable)
                                         if OldObjHandle ~= 0 then
                                             local EntType = ENTITY.GET_ENTITY_TYPE(OldObjHandle)
                                             if EntType == 3 then
-                                                ArgsTable.PropsToBring[j].PropsT[i] = {NetID = OldNetID, Handle = OldObjHandle}
+                                                if not ENTITY.IS_ENTITY_ATTACHED(OldObjHandle) then
+                                                    ArgsTable.PropsToBring[j].PropsT[i] = {NetID = OldNetID, Handle = OldObjHandle}
+                                                end
                                             end
                                         end
                                     end
@@ -1642,20 +1715,43 @@ function ScriptHandler(ArgsTable)
                                     if ArgsTable.PropsToBring[j].PropsT[i].Handle ~= 0 then
                                         if BringPropsCloser then
                                             if not ENTITY.IS_ENTITY_ATTACHED_TO_ANY_PED(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
-                                                if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
-                                                    local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
-                                                    if FoundCoords then
-                                                        if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                local ExtraCondition = false
+                                                if BringEntsLOSBased then
+                                                    ExtraCondition = not ENTITY.HAS_ENTITY_CLEAR_LOS_TO_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle, PlayerPed, 17)
+                                                end
+                                                if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) or ExtraCondition then
+                                                    local OutPos2, FoundCoords2 = FindRightSpawnPed(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                                    if FoundCoords2 then
+                                                        if not MISC.IS_POSITION_OCCUPIED(OutPos2.x, OutPos2.y, OutPos2.z, 0.5, false, true, true, true, false, PlayerPed, false) then
                                                             if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
-                                                                ENTITY.SET_ENTITY_COORDS(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
-                                                                ENTITY.SET_ENTITY_HEADING(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutHeading)
+                                                                ENTITY.SET_ENTITY_COORDS(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutPos2.x, OutPos2.y, OutPos2.z)
+                                                            end
+                                                        else
+                                                            local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                                            if FoundCoords then
+                                                                if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, PlayerPed, false) then
+                                                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
+                                                                        ENTITY.SET_ENTITY_COORDS(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                                        ENTITY.SET_ENTITY_HEADING(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutHeading)
+                                                                    end
+                                                                end
+                                                            end
+                                                        end
+                                                    else
+                                                        local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                                        if FoundCoords then
+                                                            if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, PlayerPed, false) then
+                                                                if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
+                                                                    ENTITY.SET_ENTITY_COORDS(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                                    ENTITY.SET_ENTITY_HEADING(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutHeading)
+                                                                end
                                                             end
                                                         end
                                                     end
                                                 end
                                             end
                                         end
-                                        if ENTITY.IS_ENTITY_DEAD(ArgsTable.PropsToBring[j].PropsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.PropsToBring[j].PropsT[i].Handle) or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
+                                        if ENTITY.IS_ENTITY_DEAD(ArgsTable.PropsToBring[j].PropsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.PropsToBring[j].PropsT[i].Handle) then -- or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
                                             if ArgsTable.PropsToBring[j].PropsT[i].BlipHandle ~= nil then
                                                 util.remove_blip(ArgsTable.PropsToBring[j].PropsT[i].BlipHandle)
                                             end

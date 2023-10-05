@@ -56,7 +56,9 @@ local Biker_Objects = {
 BikerResupplyT = {
     AllowedToEdit = true,
     ScriptName = "gb_illicit_goods_resupply",
-    LocalToEditT = {Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_932.f_5"), Num = 9, ToNum = 7},
+    ClearedBlips = false,
+    LocalsToEditT = {{Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_932.f_5"), Num = 9, ToNum = 7},
+    {Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_932.f_5"), Num = 14, ToNum = 9}},
     Vehicles = {{
         MaxLen = 8,
         LocalAddr = SplitGlobals("Local_932.f_33"),
@@ -104,6 +106,16 @@ BikerResupplyT = {
         ObjectsT = {},
         SpawnObjectsT = {},
         IsSupply = true
+    }},
+    PropsToBring = {{
+        MaxLen = 40,
+        LocalAddr = SplitGlobals("Local_932.f_635"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = nil,
+        DisabledModels = nil,
+        BringTargets = nil,
+        PropsT = {}
     }}
 }
 
@@ -118,6 +130,7 @@ local BikerSell_DisabledVehs = {
 BikerSellT = {
     AllowedToEdit = true,
     ScriptName = "gb_biker_contraband_sell",
+    ClearedBlips = false,
     BestSellMission = {LocalAddr = SplitGlobals("Local_699.f_17"), ToNum = 0},
     Vehicles = {{
         MaxLen = 4,
@@ -149,6 +162,7 @@ local CH_DisabledVehs = {
 CasinoHeistT = {
     AllowedToEdit = true,
     ScriptName = "gb_casino_heist",
+    ClearedBlips = false,
     Vehicles = {{
         MaxLen = 8,
         LocalAddr = SplitGlobals("Local_4275"),
@@ -222,6 +236,7 @@ local IslH_DisabledVehs = {
 CayoPericoHeistT = {
     AllowedToEdit = true,
     ScriptName = "fm_content_island_heist",
+    ClearedBlips = false,
     Vehicles = {{
         MaxLen = 25,
         LocalAddr = SplitGlobals("Local_13062.f_863[iVar0 /*8*/]"),
@@ -331,6 +346,7 @@ local ContrabandSell_DisabledVehs = {
 ContrabandSellT = {
     AllowedToEdit = true,
     ScriptName = "gb_contraband_sell",
+    ClearedBlips = false,
     Vehicles = {{
         MaxLen = 3,
         LocalAddr = SplitGlobals("Local_541.f_35"),
@@ -366,6 +382,7 @@ local Bunker_Objects = {
 GunrunningT = {
     AllowedToEdit = true,
     ScriptName = "gb_gunrunning",
+    ClearedBlips = false,
     Vehicles = {{
         MaxLen = 8,
         LocalAddr = SplitGlobals("Local_1206.f_4"),
@@ -436,6 +453,7 @@ local BusinessBattles_Objects = {
 BusinessBattlesT = {
     AllowedToEdit = true,
     ScriptName = "business_battles",
+    ClearedBlips = false,
     Vehicles = {{
         MaxLen = 8,
         LocalAddr = SplitGlobals("Local_2399"),
@@ -504,6 +522,7 @@ local BusinessBattles2_Objects = {
 BusinessBattles2T = {
     AllowedToEdit = true,
     ScriptName = "fm_content_business_battles",
+    ClearedBlips = false,
     Vehicles = {{
         MaxLen = 10,
         LocalAddr = SplitGlobals("Local_5090.f_843[*8*]"),
@@ -543,6 +562,7 @@ BusinessBattles2T = {
 ContrabandBuy2T = {
     AllowedToEdit = true,
     ScriptName = "fm_content_cargo",
+    ClearedBlips = false,
     LocalsToEditT = {{LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
     Vehicles = {{
         MaxLen = 23,
@@ -575,6 +595,7 @@ ContrabandBuy2T = {
 HeadhunterT = {
     AllowedToEdit = true,
     ScriptName = "gb_headhunter",
+    ClearedBlips = false,
     Vehicles = {{
         MaxLen = 4,
         LocalAddr = SplitGlobals("Local_94.f_2[bVar0 /*26*/].f_2"),
@@ -639,6 +660,7 @@ HeadhunterT = {
 BikerRescueContactT = {
     AllowedToEdit = true,
     ScriptName = "gb_biker_rescue_contact",
+    ClearedBlips = false,
     LocalsToEditT = {{LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
     Vehicles = {{
         MaxLen = 4,

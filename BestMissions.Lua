@@ -186,6 +186,9 @@ menu.toggle(MissionStarterMenu, "Duplicate Mission", {}, "", function(Toggle)
 	DuplicateScript = Toggle
 end, DuplicateScript)
 
+
+local WhichHostMenuPTR = nil
+local PlayerNames = {}
 local PlayersToJoin = {}
 local MissionStarter_PlayersToJoin = menu.list(MissionStarterMenu, "Which Players Send Mission", {}, "Select players to join the mission.", function()UpdatePlayersList()end, function()UpdatePlayersList()end)
 
@@ -210,10 +213,16 @@ function UpdatePlayersList()
             end
             menu.set_menu_name(PlayersToJoin[i].MenuPTR, PlayerName)
         end
+        if PlayerNames[i] ~= nil then
+            local PlayerName = "---"
+            if NETWORK.NETWORK_IS_PLAYER_ACTIVE(i-1) then
+                PlayerName = PLAYER.GET_PLAYER_NAME(i-1)
+            end
+            PlayerNames[i] = PlayerName
+            menu.set_list_action_options(WhichHostMenuPTR, PlayerNames)
+        end
     end
 end
-
-local PlayerNames = {}
 for i = 1, 30 do
     if PlayerNames[i] == nil then
         local PlayerName = "---"
@@ -224,7 +233,6 @@ for i = 1, 30 do
     end
 end
 
-local WhichHostMenuPTR = nil
 WhichHostMenuPTR = menu.list_action(MissionStarterMenu, "Start Mission To Player", {"missiontoplayer"}, "Send mission.", PlayerNames, function(OnClick)
     local Attempts = 0
     while Attempts < 100 do
@@ -706,6 +714,19 @@ menu.toggle(MiscMenu, "Maintain Stealth", {""}, "", function(Toggle)
     end
 end)
 
+menu.toggle_loop(MiscMenu, "B Battle Collect All 8 Crates", {""}, "", function(toggle)
+	local Pickups = entities.get_all_pickups_as_handles()
+	for index, crates in ipairs(Pickups) do
+		if ENTITY.GET_ENTITY_SCRIPT(crates, 0) == "fm_content_business_battles"
+		and not ENTITY.IS_ENTITY_ATTACHED_TO_ANY_PED(crates) then
+            if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(crates) then
+                ENTITY.ATTACH_ENTITY_TO_ENTITY(crates, PLAYER.PLAYER_PED_ID(), 0, 0, 0, 0, 0, 0, 0, 0, true, true, false, 0, true)
+                --OBJECT.ATTACH_PORTABLE_PICKUP_TO_PED(crates, PLAYER.PLAYER_PED_ID())
+            end
+		end
+	end
+end)
+
 local DevToolsMenu = menu.list(menu.my_root(), "DEV Tools", {}, "")
 menu.action(DevToolsMenu, "Copy Coords And Heading", {}, "", function(Toggle)
     local Coords = ENTITY.GET_ENTITY_COORDS(PLAYER.PLAYER_PED_ID())
@@ -715,9 +736,10 @@ menu.action(DevToolsMenu, "Copy Coords And Heading", {}, "", function(Toggle)
 end)
 
 menu.action(DevToolsMenu, "Test", {}, "", function(Toggle)
-    util.copy_to_clipboard(string.format("%X", memory.script_global(AppGlobals.PropertyNumber + AppGlobals.NextPlayer * PLAYER.PLAYER_ID())))
+    --util.copy_to_clipboard(string.format("%X", memory.script_global(AppGlobals.PropertyNumber + AppGlobals.NextPlayer * PLAYER.PLAYER_ID())))
     --util.copy_to_clipboard(string.format("%X", memory.script_global(AppGlobals.PropertyID + AppGlobals.NextPlayerPropertyID * PLAYER.PLAYER_ID())))
-    Print(SplitGlobals("Local_94.f_2[iParam0 /*26*/].f_3[iVar1].f_2"))
+    --Print(SplitGlobals("Local_94.f_2[iParam0 /*26*/].f_3[iVar1].f_2"))
+    util.copy_to_clipboard(string.format("%X", memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * PLAYER.PLAYER_ID())))
 end)
 
 menu.text_input(DevToolsMenu, "Copy Local Addr", {"copylocaladdr"}, "For devs.", function(OnChange)
@@ -1318,7 +1340,7 @@ function ScriptHandler(ArgsTable)
                                                     end
                                                     if ArgsTable.Peds[j].PedsT[i].PedSetts == 4 then
                                                         CopyPedSettsToPed(ArgsTable.Peds[j].PedsT[i].OldHandle, PedHandle)
-                                                        WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat("weapon_pistol"), 99999, false, true)
+                                                        WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat("weapon_appistol"), 99999, false, true)
                                                         WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat(WeapsList[math.random(#WeapsList)]), 99999, false, true)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, 17)
@@ -1406,6 +1428,13 @@ function ScriptHandler(ArgsTable)
                                                     if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Peds[j].PedsT[i].Handle) then
                                                         ENTITY.SET_ENTITY_COORDS(ArgsTable.Peds[j].PedsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
                                                     end
+                                                end
+                                            end
+                                            if AddBlipForBringedEntity then
+                                                if not HUD.DOES_PED_HAVE_AI_BLIP(ArgsTable.Peds[j].PedsT[i].Handle) then
+                                                    HUD.SET_PED_HAS_AI_BLIP_WITH_COLOUR(ArgsTable.Peds[j].PedsT[i].Handle, true, 1)
+                                                    HUD.SET_PED_AI_BLIP_HAS_CONE(ArgsTable.Peds[j].PedsT[i].Handle, false)
+                                                    HUD.SET_PED_AI_BLIP_FORCED_ON(ArgsTable.Peds[j].PedsT[i].Handle, true)
                                                 end
                                             end
                                         end

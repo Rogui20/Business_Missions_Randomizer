@@ -46,18 +46,6 @@ local MissionEnhancerMenu = menu.list(menu.my_root(), "Mission Enhancer", {}, "R
 local ImproveMissions = false
 menu.toggle(MissionEnhancerMenu, "Enhance Missions", {}, "Let it fun.", function(Toggle)
 	ImproveMissions = Toggle
-    if not ImproveMissions then
-        ScriptHandler(GunrunningT)
-        ScriptHandler(ContrabandSellT)
-        ScriptHandler(ContrabandBuyT)
-        ScriptHandler(CayoPericoHeistT)
-        ScriptHandler(CasinoHeistT)
-        ScriptHandler(BikerResupplyT)
-        ScriptHandler(BikerSellT)
-        ScriptHandler(BusinessBattlesT)
-        ScriptHandler(BusinessBattles2T)
-        ScriptHandler(ContrabandBuy2T)
-    end
 	if ImproveMissions then
 		while ImproveMissions do
             ScriptHandler(GunrunningT)
@@ -75,6 +63,17 @@ menu.toggle(MissionEnhancerMenu, "Enhance Missions", {}, "Let it fun.", function
 	end
 end, ImproveMissions)
 
+local MaxCreateAttemps = 3
+local OnlyTrackEnts = false
+menu.toggle(MissionEnhancerMenu, "Only Track Entities", {}, "", function(Toggle)
+	OnlyTrackEnts = Toggle
+    if not OnlyTrackEnts then
+        MaxCreateAttemps = 3
+    end
+    if OnlyTrackEnts then
+        MaxCreateAttemps = 0
+    end
+end)
 local AlwaysBestSellMission = false
 menu.toggle(MissionEnhancerMenu, "Always Get Best Sell Mission", {}, "", function(Toggle)
 	AlwaysBestSellMission = Toggle
@@ -102,6 +101,11 @@ local BringMissionCloser = false
 menu.toggle(MissionEnhancerMenu, "TP All Far Away Entities Closer", {"bringallfarents"}, "Fun!!!", function(Toggle)
 	BringMissionCloser = Toggle
 end, BringMissionCloser)
+
+local BringPropsCloser = false
+menu.toggle(MissionEnhancerMenu, "TP All Far Props Closer", {"bringallfarprops"}, "", function(Toggle)
+	BringPropsCloser = Toggle
+end, BringPropsCloser)
 
 local AddBlipForBringedEntity = false
 menu.toggle(MissionEnhancerMenu, "Add Blip To Teleported Entities", {}, "To locate.", function(Toggle)
@@ -671,6 +675,29 @@ menu.toggle(MiscMenu, "Party Night Lights", {""}, "", function(Toggle)
     end
 end)
 
+local MaintainStealth = false
+menu.toggle(MiscMenu, "Maintain Stealth", {""}, "", function(Toggle)
+    MaintainStealth = Toggle
+    if MaintainStealth then
+        while MaintainStealth do
+            for index, peds in pairs(entities.get_all_peds_as_handles()) do
+                if not ENTITY.IS_ENTITY_DEAD(peds) then
+                    if not PED.IS_PED_A_PLAYER(peds) then
+                        if ENTITY.IS_ENTITY_A_MISSION_ENTITY(peds) then
+                            if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(peds) then
+                                PED.SET_PED_HEARING_RANGE(peds, 0.0)
+                                PED.SET_PED_SEEING_RANGE(peds, 0.0)
+                                ENTITY.SET_ENTITY_HEALTH(peds, 101)
+                            end
+                        end
+                    end
+                end
+            end
+            Wait()
+        end
+    end
+end)
+
 local DevToolsMenu = menu.list(menu.my_root(), "DEV Tools", {}, "")
 menu.action(DevToolsMenu, "Copy Coords And Heading", {}, "", function(Toggle)
     local Coords = ENTITY.GET_ENTITY_COORDS(PLAYER.PLAYER_PED_ID())
@@ -899,7 +926,6 @@ function Request_Entity_Control(entity)
 	return NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(entity)
 end
 
-local MaxCreateAttemps = 3
 local MaxZeroTick = 100
 local MaxTickReachToWrite = 800
 
@@ -1112,6 +1138,8 @@ function ScriptHandler(ArgsTable)
                                                         Blip = HUD.ADD_BLIP_FOR_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle)
                                                         --HUD.SET_BLIP_SPRITE(Blip, 0)
                                                         HUD.SET_BLIP_COLOUR(Blip, 3)
+                                                        ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle = Blip
+                                                    else
                                                         ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle = Blip
                                                     end
                                                 end
@@ -1490,6 +1518,8 @@ function ScriptHandler(ArgsTable)
                                                         HUD.SET_BLIP_SPRITE(Blip, 586)
                                                         HUD.SET_BLIP_COLOUR(Blip, 2)
                                                         ArgsTable.Objects[j].ObjectsT[i].BlipHandle = Blip
+                                                    else
+                                                        ArgsTable.Objects[j].ObjectsT[i].BlipHandle = Blip
                                                     end
                                                 end
                                             end
@@ -1507,6 +1537,52 @@ function ScriptHandler(ArgsTable)
                                             util.remove_blip(ArgsTable.Objects[j].ObjectsT[i].BlipHandle)
                                         end
                                         ArgsTable.Objects[j].ObjectsT[i] = nil
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    if ArgsTable.PropsToBring ~= nil then
+                        for j = 1, #ArgsTable.PropsToBring do
+                            for i = 1, ArgsTable.PropsToBring[j].MaxLen do
+                                if ArgsTable.PropsToBring[j].PropsT[i] == nil then
+                                    local OldNetID = memory.read_int(memory.script_local(ScriptName, ArgsTable.PropsToBring[j].LocalAddr + ArgsTable.PropsToBring[j].NextOffset * (i - ArgsTable.PropsToBring[j].DecreaseI)))
+                                    if OldNetID > 0 then
+                                        local OldObjHandle = 0
+                                        util.spoof_script(ScriptName, function()
+                                            OldObjHandle = NETWORK.NET_TO_OBJ(OldNetID)
+                                        end)
+                                        if OldObjHandle ~= 0 then
+                                            local EntType = ENTITY.GET_ENTITY_TYPE(OldObjHandle)
+                                            if EntType == 3 then
+                                                ArgsTable.PropsToBring[j].PropsT[i] = {NetID = OldNetID, Handle = OldObjHandle}
+                                            end
+                                        end
+                                    end
+                                end
+                                if ArgsTable.PropsToBring[j].PropsT[i] ~= nil then
+                                    if ArgsTable.PropsToBring[j].PropsT[i].Handle ~= 0 then
+                                        if BringPropsCloser then
+                                            if not ENTITY.IS_ENTITY_ATTACHED_TO_ANY_PED(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
+                                                if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle, PlayerPed, DistToCheck, DistToCheck, DistToCheck, false, true, 0) then
+                                                    local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
+                                                    if FoundCoords then
+                                                        if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                            if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
+                                                                ENTITY.SET_ENTITY_COORDS(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
+                                                                ENTITY.SET_ENTITY_HEADING(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutHeading)
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end
+                                        if ENTITY.IS_ENTITY_DEAD(ArgsTable.PropsToBring[j].PropsT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.PropsToBring[j].PropsT[i].Handle) or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
+                                            if ArgsTable.PropsToBring[j].PropsT[i].BlipHandle ~= nil then
+                                                util.remove_blip(ArgsTable.PropsToBring[j].PropsT[i].BlipHandle)
+                                            end
+                                            ArgsTable.PropsToBring[j].PropsT[i] = nil
+                                        end
                                     end
                                 end
                             end
@@ -1547,6 +1623,18 @@ function ScriptHandler(ArgsTable)
                             util.remove_blip(ArgsTable.Objects[k].ObjectsT[i].BlipHandle)
                         end
                         ArgsTable.Objects[k].ObjectsT[i] = nil
+                    end
+                end
+            end
+            if ArgsTable.PropsToBring ~= nil then
+                for k = 1, #ArgsTable.PropsToBring do
+                    for i = 1, ArgsTable.PropsToBring[k].MaxLen do
+                        if ArgsTable.PropsToBring[k].PropsT[i] ~= nil then
+                            if ArgsTable.PropsToBring[k].PropsT[i].BlipHandle ~= nil then
+                                util.remove_blip(ArgsTable.PropsToBring[k].PropsT[i].BlipHandle)
+                            end
+                            ArgsTable.PropsToBring[k].PropsT[i] = nil
+                        end
                     end
                 end
             end

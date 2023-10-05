@@ -1066,6 +1066,11 @@ function ScriptHandler(ArgsTable)
                                                 ENTITY.SET_ENTITY_VELOCITY(VehHandle, OldVelocity.x, OldVelocity.y, OldVelocity.z)
                                             end
                                         end
+                                    else
+                                        ArgsTable.Vehicles[k].VehiclesT[i].NetID = ArgsTable.Vehicles[k].VehiclesT[i].OldNetID
+                                        ArgsTable.Vehicles[k].VehiclesT[i].Handle = ArgsTable.Vehicles[k].VehiclesT[i].OldHandle
+                                        ArgsTable.Vehicles[k].VehiclesT[i].OldHandle = 0
+                                        STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(ArgsTable.Vehicles[k].VehiclesT[i].Model))
                                     end
                                 end
                                 if ArgsTable.Vehicles[k].VehiclesT[i].NetID ~= 0 then
@@ -1293,6 +1298,11 @@ function ScriptHandler(ArgsTable)
                                                 end
                                             end
                                         end
+                                    else
+                                        ArgsTable.Peds[j].PedsT[i].NetID = ArgsTable.Peds[j].PedsT[i].OldNetID
+                                        ArgsTable.Peds[j].PedsT[i].Handle = ArgsTable.Peds[j].PedsT[i].OldHandle
+                                        ArgsTable.Peds[j].PedsT[i].OldHandle = 0
+                                        STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(ArgsTable.Peds[j].PedsT[i].Model))
                                     end
                                 end
                                 if ArgsTable.Peds[j].PedsT[i].NetID ~= 0 then
@@ -1487,6 +1497,11 @@ function ScriptHandler(ArgsTable)
                                                 ENTITY.FREEZE_ENTITY_POSITION(ObjHandle, false)
                                             end
                                         end
+                                    else
+                                        ArgsTable.Objects[j].ObjectsT[i].NetID = ArgsTable.Objects[j].ObjectsT[i].OldNetID
+                                        ArgsTable.Objects[j].ObjectsT[i].Handle = ArgsTable.Objects[j].ObjectsT[i].OldHandle
+                                        ArgsTable.Objects[j].ObjectsT[i].OldHandle = 0
+                                        STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(ArgsTable.Objects[j].ObjectsT[i].Model))
                                     end
                                 end
                                 if ArgsTable.Objects[j].ObjectsT[i].NetID ~= 0 then

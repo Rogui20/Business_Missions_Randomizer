@@ -642,7 +642,7 @@ BikerRescueContactT = {
     LocalsToEditT = {{LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
     Vehicles = {{
         MaxLen = 4,
-        LocalAddr = SplitGlobals("Local_1261.f_36[iParam0]"),
+        LocalAddr = SplitGlobals("Local_1261.f_36"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = VehsList,
@@ -654,7 +654,7 @@ BikerRescueContactT = {
     }},
     Peds = {{
         MaxLen = 20,
-        LocalAddr = SplitGlobals("Local_1261.f_11[bParam0]"),
+        LocalAddr = SplitGlobals("Local_1261.f_11"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Peds_Models_List,
@@ -665,7 +665,7 @@ BikerRescueContactT = {
     },
     {
         MaxLen = 3,
-        LocalAddr = SplitGlobals("Local_1261.f_7[iParam0]"),
+        LocalAddr = SplitGlobals("Local_1261.f_7"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Peds_Models_List,

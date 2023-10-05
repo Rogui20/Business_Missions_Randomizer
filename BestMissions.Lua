@@ -1318,6 +1318,7 @@ function ScriptHandler(ArgsTable)
                                                     end
                                                     if ArgsTable.Peds[j].PedsT[i].PedSetts == 4 then
                                                         CopyPedSettsToPed(ArgsTable.Peds[j].PedsT[i].OldHandle, PedHandle)
+                                                        WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat("weapon_pistol"), 99999, false, true)
                                                         WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat(WeapsList[math.random(#WeapsList)]), 99999, false, true)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, 17)

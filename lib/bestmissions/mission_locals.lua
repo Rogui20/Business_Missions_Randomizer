@@ -571,3 +571,110 @@ ContrabandBuy2T = {
         MaxLen = 0
     }}
 }
+
+HeadhunterT = {
+    AllowedToEdit = true,
+    ScriptName = "gb_headhunter",
+    Vehicles = {{
+        MaxLen = 4,
+        LocalAddr = SplitGlobals("Local_94.f_2[bVar0 /*26*/].f_2"),
+        NextOffset = 26,
+        DecreaseI = 1,
+        SelectedModels = VehsList,
+        DisabledModels = nil,
+        UpgradeType = 0,
+        BringTargets = 200.0,
+        HealthToGive = 500,
+        VehiclesT = {}
+    }},
+    Peds = {{
+        MaxLen = 4,
+        LocalAddr = SplitGlobals("Local_94.f_2[bVar0 /*26*/].f_1"),
+        NextOffset = 26,
+        DecreaseI = 1,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    },
+    {
+        MaxLen = 4,
+        LocalAddr = SplitGlobals("Local_94.f_2[iParam0 /*26*/].f_7[bVar1]"),
+        NextOffset = 26,
+        DecreaseI = 1,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    },
+    {
+        MaxLen = 4,
+        LocalAddr = SplitGlobals("Local_94.f_2[iParam0 /*26*/].f_3[iVar1].f_1"),
+        NextOffset = 26,
+        DecreaseI = 1,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    },
+    {
+        MaxLen = 4,
+        LocalAddr = SplitGlobals("Local_94.f_2[iParam0 /*26*/].f_3[iVar1].f_2"),
+        NextOffset = 26,
+        DecreaseI = 1,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    }},
+    Objects = {{
+        MaxLen = 0
+    }}
+}
+
+BikerRescueContactT = {
+    AllowedToEdit = true,
+    ScriptName = "gb_biker_rescue_contact",
+    LocalsToEditT = {{LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
+    Vehicles = {{
+        MaxLen = 4,
+        LocalAddr = SplitGlobals("Local_1261.f_36[iParam0]"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = VehsList,
+        DisabledModels = nil,
+        UpgradeType = 0,
+        BringTargets = 200.0,
+        HealthToGive = 50000,
+        VehiclesT = {}
+    }},
+    Peds = {{
+        MaxLen = 20,
+        LocalAddr = SplitGlobals("Local_1261.f_11[bParam0]"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    },
+    {
+        MaxLen = 3,
+        LocalAddr = SplitGlobals("Local_1261.f_7[iParam0]"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 4,
+        BringTargets = 200.0,
+        PedsT = {}
+    }},
+    Objects = {{
+        MaxLen = 0
+    }}
+}

@@ -203,6 +203,7 @@ CasinoHeistT = {
         SelectedModels = nil,
         DisabledModels = nil,
         BringTargets = nil,
+        PropsT = {}
     }}
 }
 
@@ -214,8 +215,8 @@ local Islh_Objects = {
 local IslH_DisabledVehs = {
     {Model1 = "velum2", Model2 = "streamer216"},
     {Model1 = "longfin", Model2 = "seasparrow"},
-    {Model1 = "valkyrie", Model2 = "pyro", Upgrade = 1},
-    {Model1 = "valkyrie2", Model2 = "pyro", Upgrade = 1}
+    {Model1 = "valkyrie", Model2 = "avenger", Upgrade = 0},
+    {Model1 = "valkyrie2", Model2 = "avenger", Upgrade = 0}
 }
 
 CayoPericoHeistT = {

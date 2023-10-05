@@ -58,6 +58,8 @@ menu.toggle(MissionEnhancerMenu, "Enhance Missions", {}, "Let it fun.", function
             ScriptHandler(BusinessBattlesT)
             ScriptHandler(BusinessBattles2T)
             ScriptHandler(ContrabandBuy2T)
+            ScriptHandler(HeadhunterT)
+            ScriptHandler(BikerRescueContactT)
             Wait()
         end
 	end
@@ -153,6 +155,12 @@ end, BusinessBattlesT.AllowedToEdit)
 menu.toggle(AllowedMissionsMenu, "Business Battles 2", {}, "", function(Toggle)
 	BusinessBattles2T.AllowedToEdit = Toggle
 end, BusinessBattles2T.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Head Hunter", {}, "", function(Toggle)
+	HeadhunterT.AllowedToEdit = Toggle
+end, HeadhunterT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Biker Rescue Contact", {}, "", function(Toggle)
+	BikerRescueContactT.AllowedToEdit = Toggle
+end, BikerRescueContactT.AllowedToEdit)
 
 local MissionStarterMenu = menu.list(menu.my_root(), "Mission Starter (Experimental)", {}, "Make other players play fun missions.")
 
@@ -709,6 +717,7 @@ end)
 menu.action(DevToolsMenu, "Test", {}, "", function(Toggle)
     util.copy_to_clipboard(string.format("%X", memory.script_global(AppGlobals.PropertyNumber + AppGlobals.NextPlayer * PLAYER.PLAYER_ID())))
     --util.copy_to_clipboard(string.format("%X", memory.script_global(AppGlobals.PropertyID + AppGlobals.NextPlayerPropertyID * PLAYER.PLAYER_ID())))
+    Print(SplitGlobals("Local_94.f_2[iParam0 /*26*/].f_3[iVar1].f_2"))
 end)
 
 menu.text_input(DevToolsMenu, "Copy Local Addr", {"copylocaladdr"}, "For devs.", function(OnChange)
@@ -899,7 +908,7 @@ function SetPedCombatAbilities(ped)
 	PED.SET_PED_COMBAT_ATTRIBUTES(ped, 38, true)
 	PED.SET_PED_COMBAT_ATTRIBUTES(ped, 46, true)
 	PED.SET_PED_COMBAT_MOVEMENT(ped, 2)
-	PED.SET_PED_COMBAT_ABILITY(ped, 2) 
+	PED.SET_PED_COMBAT_ABILITY(ped, 2)
 	PED.SET_PED_COMBAT_RANGE(ped, 2)
 	PED.SET_PED_SEEING_RANGE(ped, 100.0)
 	PED.SET_PED_TARGET_LOSS_RESPONSE(ped, 1)
@@ -1253,6 +1262,18 @@ function ScriptHandler(ArgsTable)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, 17)
                                                     end
+                                                    if ArgsTable.Peds[j].PedsT[i].PedSetts == 4 then
+                                                        CopyPedSettsToPed(ArgsTable.Peds[j].PedsT[i].OldHandle, PedHandle)
+                                                        WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat(WeapsList[math.random(#WeapsList)]), 99999, false, true)
+                                                        PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
+                                                        PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, 17)
+                                                        SetPedCombatAbilities(PedHandle)
+                                                        ENTITY.SET_ENTITY_MAX_HEALTH(PedHandle, 10000)
+                                                        PED.SET_PED_MAX_HEALTH(PedHandle, 10000)
+                                                        ENTITY.SET_ENTITY_HEALTH(PedHandle, 10000)
+                                                        PED.SET_PED_SUFFERS_CRITICAL_HITS(PedHandle, false)
+                                                        PED.SET_PED_CONFIG_FLAG(PedHandle, 188, true)
+                                                    end
                                                 end
                                             else
                                                 local OldCoords = ENTITY.GET_ENTITY_COORDS(ArgsTable.Peds[j].PedsT[i].OldHandle)
@@ -1294,6 +1315,18 @@ function ScriptHandler(ArgsTable)
                                                         WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat(WeapsList[math.random(#WeapsList)]), 99999, false, true)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
                                                         PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, 17)
+                                                    end
+                                                    if ArgsTable.Peds[j].PedsT[i].PedSetts == 4 then
+                                                        CopyPedSettsToPed(ArgsTable.Peds[j].PedsT[i].OldHandle, PedHandle)
+                                                        WEAPON.GIVE_WEAPON_TO_PED(PedHandle, joaat(WeapsList[math.random(#WeapsList)]), 99999, false, true)
+                                                        PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, true)
+                                                        PED.SET_PED_COMBAT_ATTRIBUTES(PedHandle, 5, 17)
+                                                        SetPedCombatAbilities(PedHandle)
+                                                        ENTITY.SET_ENTITY_MAX_HEALTH(PedHandle, 10000)
+                                                        PED.SET_PED_MAX_HEALTH(PedHandle, 10000)
+                                                        ENTITY.SET_ENTITY_HEALTH(PedHandle, 10000)
+                                                        PED.SET_PED_SUFFERS_CRITICAL_HITS(PedHandle, false)
+                                                        PED.SET_PED_CONFIG_FLAG(PedHandle, 188, true)
                                                     end
                                                 end
                                             end

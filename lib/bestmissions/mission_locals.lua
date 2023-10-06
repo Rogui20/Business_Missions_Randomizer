@@ -261,15 +261,25 @@ CayoPericoHeistT = {
         PedsT = {}
     }},
     Objects = {{
-        MaxLen = 1,
-        LocalAddr = SplitGlobals("Local_11641"),
+        MaxLen = 10,
+        LocalAddr = SplitGlobals("Local_13062.f_2"),
         NextOffset = 1,
         DecreaseI = 0,
-        SelectedModels = Islh_Objects,
+        SelectedModels = Global_Objects,
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
         SpawnObjectsT = {}
+    }},
+    PropsToBring = {{
+        MaxLen = 31,
+        LocalAddr = SplitGlobals("Local_13062.f_1064[iParam0 /*5*/]"),
+        NextOffset = 5,
+        DecreaseI = 1,
+        SelectedModels = nil,
+        DisabledModels = nil,
+        BringTargets = nil,
+        PropsT = {}
     }}
 }
 

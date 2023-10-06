@@ -726,6 +726,7 @@ menu.toggle(MiscMenu, "Maintain Stealth", {""}, "", function(Toggle)
                             if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(peds) then
                                 PED.SET_PED_HEARING_RANGE(peds, 0.0)
                                 PED.SET_PED_SEEING_RANGE(peds, 0.0)
+                                PED.SET_PED_ARMOUR(peds, 0)
                                 ENTITY.SET_ENTITY_HEALTH(peds, 101)
                             end
                         end

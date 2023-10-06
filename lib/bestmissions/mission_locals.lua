@@ -451,7 +451,7 @@ local BusinessBattles_Objects = {
 }
 
 BusinessBattlesT = {
-    AllowedToEdit = true,
+    AllowedToEdit = false,
     ScriptName = "business_battles",
     ClearedBlips = false,
     Vehicles = {{
@@ -520,7 +520,7 @@ local BusinessBattles2_Objects = {
 }
 
 BusinessBattles2T = {
-    AllowedToEdit = true,
+    AllowedToEdit = false,
     ScriptName = "fm_content_business_battles",
     ClearedBlips = false,
     Vehicles = {{
@@ -593,7 +593,7 @@ ContrabandBuy2T = {
 }
 
 HeadhunterT = {
-    AllowedToEdit = true,
+    AllowedToEdit = false,
     ScriptName = "gb_headhunter",
     ClearedBlips = false,
     Vehicles = {{
@@ -658,7 +658,7 @@ HeadhunterT = {
 }
 
 BikerRescueContactT = {
-    AllowedToEdit = true,
+    AllowedToEdit = false,
     ScriptName = "gb_biker_rescue_contact",
     ClearedBlips = false,
     LocalsToEditT = {{LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},

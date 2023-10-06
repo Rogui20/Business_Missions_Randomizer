@@ -714,20 +714,39 @@ menu.toggle(MiscMenu, "Party Night Lights", {""}, "", function(Toggle)
     end
 end)
 
+local ExtraDark = false
+menu.toggle(MiscMenu, "Extra Dark", {""}, "", function(Toggle)
+    ExtraDark = Toggle
+    if ExtraDark then
+        GRAPHICS.SET_TIMECYCLE_MODIFIER("Casino_Lightsoff")
+        GRAPHICS.SET_EXTRA_TCMODIFIER("NoPedLight")
+        while ExtraDark do
+            if GRAPHICS.GET_TIMECYCLE_MODIFIER_INDEX() == -1 then
+                GRAPHICS.SET_TIMECYCLE_MODIFIER("Casino_Lightsoff")
+                GRAPHICS.SET_EXTRA_TCMODIFIER("NoPedLight")
+            end
+            Wait(1000)
+        end
+    end
+end)
+
 local MaintainStealth = false
 menu.toggle(MiscMenu, "Maintain Stealth", {""}, "", function(Toggle)
     MaintainStealth = Toggle
     if MaintainStealth then
         while MaintainStealth do
+            local PlayerPed = PLAYER.PLAYER_PED_ID()
             for index, peds in pairs(entities.get_all_peds_as_handles()) do
                 if not ENTITY.IS_ENTITY_DEAD(peds) then
                     if not PED.IS_PED_A_PLAYER(peds) then
                         if ENTITY.IS_ENTITY_A_MISSION_ENTITY(peds) then
-                            if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(peds) then
-                                PED.SET_PED_HEARING_RANGE(peds, 0.0)
-                                PED.SET_PED_SEEING_RANGE(peds, 0.0)
-                                PED.SET_PED_ARMOUR(peds, 0)
-                                ENTITY.SET_ENTITY_HEALTH(peds, 101)
+                            if PED.GET_RELATIONSHIP_BETWEEN_PEDS(pesd, PlayerPed) == 5 then
+                                if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(peds) then
+                                    PED.SET_PED_HEARING_RANGE(peds, 0.0)
+                                    PED.SET_PED_SEEING_RANGE(peds, 0.0)
+                                    PED.SET_PED_ARMOUR(peds, 0)
+                                    ENTITY.SET_ENTITY_HEALTH(peds, 101)
+                                end
                             end
                         end
                     end

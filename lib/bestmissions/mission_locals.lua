@@ -710,3 +710,88 @@ BikerRescueContactT = {
         MaxLen = 0
     }}
 }
+
+local MissionController_DisabledVehs = {
+    {Model1 = "coquette2", Model2 = "sultan3", Upgrade = 2},
+    {Model1 = "coquette3", Model2 = "sultan3", Upgrade = 2},
+    {Model1 = "asea", Model2 = "sultan3", Upgrade = 2},
+    {Model1 = "velum2", Model2 = "shamal", Upgrade = 2},
+    {Model1 = "granger", Model2 = "kamacho", Upgrade = 2},
+    {Model1 = "kuruma2", Model2 = "toreador", Upgrade = 2},
+    {Model1 = "kuruma", Model2 = "toreador", Upgrade = 2},
+    {Model1 = "hydra", Model2 = "raiju", Upgrade = 2},
+    {Model1 = "pbus", Model2 = "bus", Upgrade = 1},
+    {Model1 = "boxville", Model2 = "boxville", Upgrade = 2},
+    {Model1 = "boxville2", Model2 = "boxville2", Upgrade = 2},
+    {Model1 = "boxville3", Model2 = "boxville3", Upgrade = 2},
+    {Model1 = "boxville4", Model2 = "boxville4", Upgrade = 2},
+    {Model1 = "dinghy", Model2 = "patrolboat", Upgrade = 2},
+    {Model1 = "dinghy2", Model2 = "patrolboat", Upgrade = 2},
+    {Model1 = "dinghy3", Model2 = "patrolboat", Upgrade = 2},
+    {Model1 = "dinghy4", Model2 = "patrolboat", Upgrade = 2},
+    {Model1 = "lectro", Model2 = "oppressor", Upgrade = 2},
+    {Model1 = "barracks", Model2 = "barrage", Upgrade = 2},
+    {Model1 = "barracks3", Model2 = "barrage", Upgrade = 2},
+    {Model1 = "insurgent", Model2 = "tampa3", Upgrade = 2},
+    {Model1 = "insurgent2", Model2 = "tampa3", Upgrade = 2},
+    {Model1 = "predator", Model2 = "dinghy5", Upgrade = 2},
+    {Model1 = "buzzard", Model2 = "valkyrie", Upgrade = 2},
+    {Model1 = "valkyrie", Model2 = "savage", Upgrade = 2},
+    {Model1 = "cargobob", Model2 = "cargobob", Upgrade = 2},
+    {Model1 = "cargobob2", Model2 = "cargobob2", Upgrade = 2},
+    {Model1 = "technical", Model2 = "tampa3", Upgrade = 2},
+    {Model1 = "mule", Model2 = "tampa3", Upgrade = 2},
+    {Model1 = "mule2", Model2 = "tampa3", Upgrade = 2},
+    {Model1 = "mule3", Model2 = "tampa3", Upgrade = 2},
+    {Model1 = "mule4", Model2 = "tampa3", Upgrade = 2},
+    {Model1 = "frogger", Model2 = "valkyrie", Upgrade = 2},
+    {Model1 = "frogger2", Model2 = "valkyrie", Upgrade = 2},
+    {Model1 = "trash", Model2 = "trash", Upgrade = 2},
+    {Model1 = "trash2", Model2 = "trash2", Upgrade = 2},
+    {Model1 = "phantom", Model2 = "phantom2", Upgrade = 2},
+    {Model1 = "seashark", Model2 = "patrolboat", Upgrade = 2},
+    {Model1 = "seashark2", Model2 = "patrolboat", Upgrade = 2},
+    {Model1 = "seashark3", Model2 = "patrolboat", Upgrade = 2},
+}
+
+MissionController_ClassicHeistsT = {
+    AllowedToEdit = false,
+    ScriptName = "fm_mission_controller",
+    ClearedBlips = false,
+    Vehicles = {{
+        MaxLen = 0,
+        LocalAddr = SplitGlobals("Local_22924.f_834.f_81"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = nil,
+        DisabledModels = MissionController_DisabledVehs,
+        UpgradeType = 0,
+        BringTargets = 200.0,
+        HealthToGive = 50000,
+        VehiclesT = {}
+    }},
+    Peds = {{
+        MaxLen = 0,
+        LocalAddr = SplitGlobals("Local_1261.f_11"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    }},
+    Objects = {{
+        MaxLen = 0
+    }},
+    VehiclesGlobals = {{
+        MaxLen = 32,
+        GlobalAddr = SplitGlobals("Global_4980736.f_91874[bVar0 /*529*/].f_12"),
+        NextOffset = 529,
+        DecreaseI = 1,
+        SelectedModels = nil,
+        DisabledModels = MissionController_ClassicHeistsT,
+        UpgradeGlobal = SplitGlobals("Global_4980736.f_91874[bVar0 /*529*/].f_111"),
+        VehiclesT = {}
+    }}
+}

@@ -60,6 +60,7 @@ menu.toggle(MissionEnhancerMenu, "Enhance Missions", {}, "Let it fun.", function
             ScriptHandler(ContrabandBuy2T)
             ScriptHandler(HeadhunterT)
             ScriptHandler(BikerRescueContactT)
+            ScriptHandler(MissionController_ClassicHeistsT)
             Wait()
         end
 	end
@@ -166,6 +167,9 @@ end, HeadhunterT.AllowedToEdit)
 menu.toggle(AllowedMissionsMenu, "Biker Rescue Contact", {}, "", function(Toggle)
 	BikerRescueContactT.AllowedToEdit = Toggle
 end, BikerRescueContactT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Classic Heists", {}, "", function(Toggle)
+	MissionController_ClassicHeistsT.AllowedToEdit = Toggle
+end, MissionController_ClassicHeistsT.AllowedToEdit)
 
 local MissionStarterMenu = menu.list(menu.my_root(), "Mission Starter (Experimental)", {}, "Make other players play fun missions.")
 
@@ -717,19 +721,26 @@ end)
 local ExtraDark = false
 menu.toggle(MiscMenu, "Extra Dark", {""}, "", function(Toggle)
     ExtraDark = Toggle
+    if not ExtraDark then
+        GRAPHICS.CLEAR_TIMECYCLE_MODIFIER()
+        GRAPHICS.CLEAR_EXTRA_TCMODIFIER()
+    end
     if ExtraDark then
-        GRAPHICS.SET_TIMECYCLE_MODIFIER("Casino_Lightsoff")
-        GRAPHICS.SET_EXTRA_TCMODIFIER("NoPedLight")
+        local TCString1 = "Casino_Lightsoff"
+        local TCString2 = "NoPedLight"
+        GRAPHICS.SET_TIMECYCLE_MODIFIER(TCString1)
+        GRAPHICS.SET_EXTRA_TCMODIFIER(TCString2)
         while ExtraDark do
             if GRAPHICS.GET_TIMECYCLE_MODIFIER_INDEX() == -1 then
-                GRAPHICS.SET_TIMECYCLE_MODIFIER("Casino_Lightsoff")
-                GRAPHICS.SET_EXTRA_TCMODIFIER("NoPedLight")
+                GRAPHICS.SET_TIMECYCLE_MODIFIER(TCString1)
+                GRAPHICS.SET_EXTRA_TCMODIFIER(TCString2)
             end
             Wait(1000)
         end
     end
 end)
 
+--Global_1978495
 local MaintainStealth = false
 menu.toggle(MiscMenu, "Maintain Stealth", {""}, "", function(Toggle)
     MaintainStealth = Toggle
@@ -740,7 +751,7 @@ menu.toggle(MiscMenu, "Maintain Stealth", {""}, "", function(Toggle)
                 if not ENTITY.IS_ENTITY_DEAD(peds) then
                     if not PED.IS_PED_A_PLAYER(peds) then
                         if ENTITY.IS_ENTITY_A_MISSION_ENTITY(peds) then
-                            if PED.GET_RELATIONSHIP_BETWEEN_PEDS(pesd, PlayerPed) == 5 then
+                            if PED.GET_RELATIONSHIP_BETWEEN_PEDS(pesd, PlayerPed) ~= 1 then
                                 if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(peds) then
                                     PED.SET_PED_HEARING_RANGE(peds, 0.0)
                                     PED.SET_PED_SEEING_RANGE(peds, 0.0)
@@ -1026,6 +1037,37 @@ function ScriptHandler(ArgsTable)
                 if IsHost then
                     local PlayerPed = PLAYER.PLAYER_PED_ID()
                     local PlPos = ENTITY.GET_ENTITY_COORDS(PlayerPed)
+                    if ArgsTable.VehiclesGlobals ~= nil then
+                        for k = 1, #ArgsTable.VehiclesGlobals do
+                            for j = 1, ArgsTable.VehiclesGlobals[k].MaxLen do
+                                if ArgsTable.VehiclesGlobals[k].VehiclesT[j] == nil then
+                                    local IndexModel = memory.read_int(memory.script_global(ArgsTable.VehiclesGlobals[k].GlobalAddr + ArgsTable.VehiclesGlobals[k].NextOffset * (j - ArgsTable.VehiclesGlobals[k].DecreaseI)))
+                                    local UpgradeType = 1
+                                    if ArgsTable.VehiclesGlobals[k].DisabledModels ~= nil then
+                                        local HasSet = false
+                                        for i = 1, #ArgsTable.VehiclesGlobals[k].DisabledModels do
+                                            if not HasSet then
+                                                if IndexModel == joaat(ArgsTable.VehiclesGlobals[k].DisabledModels[i].Model1) then
+                                                    HasSet = true
+                                                    memory.write_int(memory.script_global(ArgsTable.VehiclesGlobals[k].GlobalAddr + ArgsTable.VehiclesGlobals[k].NextOffset * (j - ArgsTable.VehiclesGlobals[k].DecreaseI)), joaat(ArgsTable.VehiclesGlobals[k].DisabledModels[i].Model2))
+                                                    if ArgsTable.VehiclesGlobals[k].DisabledModels[i].Upgrade ~= nil then
+                                                        UpgradeType = ArgsTable.VehiclesGlobals[k].DisabledModels[i].Upgrade
+                                                        if UpgradeType == 2 then
+                                                            ArgsTable.VehiclesGlobals[k].VehiclesT[j] = {UpgradeType = UpgradeType}
+                                                            local Bits = memory.read_int(memory.script_global(ArgsTable.VehiclesGlobals[k].UpgradeGlobal + ArgsTable.VehiclesGlobals[k].NextOffset * (j - ArgsTable.VehiclesGlobals[k].DecreaseI)))
+                                                            if not is_bit_set(Bits, 6) then
+                                                                memory.write_int(memory.script_global(ArgsTable.VehiclesGlobals[k].UpgradeGlobal + ArgsTable.VehiclesGlobals[k].NextOffset * (j - ArgsTable.VehiclesGlobals[k].DecreaseI)), set_bit(Bits, 6))
+                                                            end
+                                                        end
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
                     if ArgsTable.LocalToEditT ~= nil then
                         if ArgsTable.LocalToEditT.Tick < ArgsTable.LocalToEditT.MaxTick then
                             ArgsTable.LocalToEditT.Tick = ArgsTable.LocalToEditT.Tick + 1
@@ -1068,7 +1110,10 @@ function ScriptHandler(ArgsTable)
                                         if not ENTITY.IS_ENTITY_DEAD(OldVehHandle) then
                                             local EntType = ENTITY.GET_ENTITY_TYPE(OldVehHandle)
                                             if EntType == 2 then
-                                                local VehModelToUse = ArgsTable.Vehicles[k].SelectedModels[math.random(#ArgsTable.Vehicles[k].SelectedModels)]
+                                                local VehModelToUse = ""
+                                                if ArgsTable.Vehicles[k].SelectedModels ~= nil then
+                                                    VehModelToUse = ArgsTable.Vehicles[k].SelectedModels[math.random(#ArgsTable.Vehicles[k].SelectedModels)]
+                                                end
                                                 local EntModel = ENTITY.GET_ENTITY_MODEL(OldVehHandle)
                                                 local UpgradeType = 1
                                                 local HandleToSet = 0
@@ -1093,6 +1138,12 @@ function ScriptHandler(ArgsTable)
                                                                     UpgradeType = ArgsTable.Vehicles[k].DisabledModels[j].UpgradeType
                                                                 end
                                                             end
+                                                        end
+                                                        if VehModelToUse == "" then
+                                                            VehModelToUse = EntModel
+                                                            HandleToSet = OldVehHandle
+                                                            NetIDToSet = OldNetID
+                                                            OldHandleToSet = 0
                                                         end
                                                     end
                                                     ArgsTable.Vehicles[k].VehiclesT[i] = {Model = VehModelToUse, NetID = NetIDToSet, Handle = HandleToSet, OldHandle = OldHandleToSet, UpgradeType = UpgradeType, OldNetID = OldNetID, Attempts = 0}
@@ -1129,6 +1180,11 @@ function ScriptHandler(ArgsTable)
                                                     STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(ArgsTable.Vehicles[k].VehiclesT[i].Model))
                                                 end
                                             else
+                                                if ArgsTable.Vehicles[k].VehiclesT[i].UpgradeType == 2 then
+                                                    SetSupplyVehSettings(VehHandle, 50000)
+                                                    VEHICLE.SET_VEHICLE_COLOURS(VehHandle, math.random(0, 160), math.random(0, 160))
+                                                    ENTITY.SET_ENTITY_INVINCIBLE(VehHandle, true)
+                                                end
                                                 if ArgsTable.Vehicles[k].VehiclesT[i].UpgradeType == 1 then
                                                     local VehHealth = 5000
                                                     if ArgsTable.Vehicles[k].HealthToGive ~= nil then
@@ -1246,6 +1302,9 @@ function ScriptHandler(ArgsTable)
                                                 ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Vehicles[k].VehiclesT[i].Handle, true)
                                             end
                                         end
+                                    end
+                                    if ArgsTable.Vehicles[k].VehiclesT[i].UpgradeType == 2 then
+                                        ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Vehicles[k].VehiclesT[i].Handle, true)
                                     end
                                     if ENTITY.IS_ENTITY_DEAD(ArgsTable.Vehicles[k].VehiclesT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then -- or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
                                         if ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle ~= nil then
@@ -1785,6 +1844,13 @@ function ScriptHandler(ArgsTable)
                 end
             end
         else
+            if ArgsTable.VehiclesGlobals ~= nil then
+                for k = 1, #ArgsTable.VehiclesGlobals do
+                    for j = 1, ArgsTable.VehiclesGlobals[k].MaxLen do
+                        ArgsTable.VehiclesGlobals[k].VehiclesT[j] = nil
+                    end
+                end
+            end
             if ArgsTable.LocalToEditT ~= nil then
                 if ArgsTable.LocalToEditT.Tick > 0 then
                     ArgsTable.LocalToEditT.Tick = 0
@@ -1893,7 +1959,20 @@ function SetRandomPedSetts(Ped)
     end
     WEAPON.GIVE_WEAPON_TO_PED(Ped, WeapsList[math.random(#WeapsList)], 99999, false, true)
 end
+function is_bit_set(value, bit)
+    bit = bit - 1
+    return (value & (1 << bit)) ~= 0
+end
 
+function clear_bit(value, bit)
+    bit = bit - 1;
+    return value & ~(1 << bit)
+end
+
+function set_bit(value, bit)
+    bit = bit - 1;
+    return value | 1 << bit
+end
 util.create_tick_handler(function()
 	return true
 end)

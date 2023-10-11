@@ -124,7 +124,10 @@ local BikerSell_DisabledVehs = {
     {Model1 = "pounder", Model2 = "vigilante"},
     {Model1 = "buzzard2", Model2 = "raiju"},
     {Model1 = "bagger", Model2 = "oppressor"},
-    {Model1 = "dinghy3", Model2 = "seasparrow"}
+    {Model1 = "dinghy3", Model2 = "seasparrow"},
+    {Model1 = "trash", Model2 = "toreador"},
+    {Model1 = "trash2", Model2 = "toreador"},
+    --{Model1 = "oppressor", Model2 = "toreador"}
 }
 
 BikerSellT = {
@@ -573,7 +576,7 @@ ContrabandBuy2T = {
     AllowedToEdit = true,
     ScriptName = "fm_content_cargo",
     ClearedBlips = false,
-    LocalsToEditT = {{LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
+    LocalsToEditT = {{Tick = 0, MaxTick = 0, LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
     Vehicles = {{
         MaxLen = 23,
         LocalAddr = SplitGlobals("Local_5621.f_723[iParam0 /*8*/]"),
@@ -671,7 +674,7 @@ BikerRescueContactT = {
     AllowedToEdit = false,
     ScriptName = "gb_biker_rescue_contact",
     ClearedBlips = false,
-    LocalsToEditT = {{LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
+    LocalsToEditT = {{Tick = 0, MaxTick = 0,LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
     Vehicles = {{
         MaxLen = 4,
         LocalAddr = SplitGlobals("Local_1261.f_36"),
@@ -790,7 +793,7 @@ MissionController_ClassicHeistsT = {
         NextOffset = 529,
         DecreaseI = 1,
         SelectedModels = nil,
-        DisabledModels = MissionController_ClassicHeistsT,
+        DisabledModels = MissionController_DisabledVehs,
         UpgradeGlobal = SplitGlobals("Global_4980736.f_91874[bVar0 /*529*/].f_111"),
         VehiclesT = {}
     }}

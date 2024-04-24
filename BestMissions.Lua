@@ -81,7 +81,7 @@ menu.toggle(MissionEnhancerMenu, "Only Track Entities", {}, "", function(Toggle)
         MaxCreateAttemps = 0
     end
 end)
-local OnlyReplaceMissionTargets = false
+local OnlyReplaceMissionTargets = true
 menu.toggle(MissionEnhancerMenu, "Only Replace Mission Targets", {}, "", function(Toggle)
 	OnlyReplaceMissionTargets = Toggle
     if not OnlyReplaceMissionTargets then
@@ -90,7 +90,7 @@ menu.toggle(MissionEnhancerMenu, "Only Replace Mission Targets", {}, "", functio
     if OnlyReplaceMissionTargets then
         MaxCreateAttemps = 0
     end
-end)
+end, OnlyReplaceMissionTargets)
 local AlwaysBestSellMission = false
 menu.toggle(MissionEnhancerMenu, "Always Get Best Sell Mission", {}, "", function(Toggle)
 	AlwaysBestSellMission = Toggle

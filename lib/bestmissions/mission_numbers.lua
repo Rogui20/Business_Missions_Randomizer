@@ -40,7 +40,10 @@ ScriptNames = {
     "Biker Resuply (Business)",
     "Bunker (Business)",
     "Nightclub (Business)",
-    "Business Battles"
+    "Business Battles",
+    "Smuggler (Business)",
+    "Island Heist Preps",
+    "Casino Heist Preps"
 }
 
 ScriptArgs = {
@@ -52,7 +55,10 @@ ScriptArgs = {
     {StackSize = 5050, ScriptName = "GB_ILLICIT_GOODS_RESUPPLY", Arg = 93},
     {StackSize = 5050, ScriptName = "GB_GUNRUNNING", Arg = 108},
     {StackSize = 5050, ScriptName = "BUSINESS_BATTLES_SELL", Arg = 115},
-    {StackSize = 15900, ScriptName = "BUSINESS_BATTLES", Arg = 114}
+    {StackSize = 15900, ScriptName = "BUSINESS_BATTLES", Arg = 114},
+    {StackSize = 15900, ScriptName = "GB_SMUGGLER", Arg = 112},
+    {StackSize = 15900, ScriptName = "fm_content_island_heist", Arg = 112},
+    {StackSize = 15900, ScriptName = "gb_casino_heist", Arg = 112}
 }
 
 function SplitGlobals(GlobalString)
@@ -93,17 +99,17 @@ function SplitGlobals(GlobalString)
 end
 
 MissionGlobals = {
-    WhichMissionStart = SplitGlobals("Global_1895156[bParam0 /*609*/].f_10.f_32"),
-    WhichMissionIn = SplitGlobals("Global_1895156[bParam0 /*609*/].f_10.f_33"),
-    InWhichPlayerIndex = SplitGlobals("Global_1895156[bParam0 /*609*/].f_10.f_35"),
+    WhichMissionStart = SplitGlobals("Global_1886967[bParam0 /*609*/].f_10.f_32"),
+    WhichMissionIn = SplitGlobals("Global_1886967[bParam0 /*609*/].f_10.f_33"),
+    InWhichPlayerIndex = SplitGlobals("Global_1886967[bParam0 /*609*/].f_10.f_35"),
     NextPlayer = 609
 }
 
 AppGlobals = {
-    PropertyNumber = SplitGlobals("Global_2657704[iParam0 /*463*/].f_321.f_7"),
+    PropertyNumber = SplitGlobals("Global_2657921[iParam0 /*463*/].f_321.f_7"),
     NextPlayer = 463,
     WarehouseOrOffice = SplitGlobals("Global_1969858.f_1"),
-    PropertyID = SplitGlobals("Global_1853988[PLAYER::PLAYER_ID() /*867*/].f_267.f_33"),
-    NextPlayerPropertyID = 867,
-    AppState = SplitGlobals("Global_1950700")
+    PropertyID = SplitGlobals("Global_1845263[PLAYER::PLAYER_ID() /*877*/].f_267.f_34"),
+    NextPlayerPropertyID = 877,
+    AppState = SplitGlobals("Global_1974473")
 }

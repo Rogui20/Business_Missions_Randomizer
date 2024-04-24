@@ -57,11 +57,16 @@ BikerResupplyT = {
     AllowedToEdit = true,
     ScriptName = "gb_illicit_goods_resupply",
     ClearedBlips = false,
-    LocalsToEditT = {{Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_932.f_5"), Num = 9, ToNum = 7},
-    {Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_932.f_5"), Num = 14, ToNum = 9}},
+    LocalsToEditT = {
+    --{Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_935.f_5"), Num = 9, ToNum = 7},
+    --{Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_935.f_5"), Num = 14, ToNum = 7},
+    --{Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_935.f_5"), Num = 6, ToNum = 7},
+    {Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_935.f_772"), Num = 1, ToNum = 8},
+    --{Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_935.f_728"), Num = 1, ToNum = 8}
+    },
     Vehicles = {{
         MaxLen = 8,
-        LocalAddr = SplitGlobals("Local_932.f_33"),
+        LocalAddr = SplitGlobals("Local_935.f_33"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = SupplyVehsList,
@@ -74,7 +79,7 @@ BikerResupplyT = {
     },
     {
         MaxLen = 10,
-        LocalAddr = SplitGlobals("Local_932.f_404[0 /*5*/]"),
+        LocalAddr = SplitGlobals("Local_935.f_404[0 /*5*/]"),
         NextOffset = 5,
         DecreaseI = 1,
         SelectedModels = VehsList,
@@ -86,7 +91,7 @@ BikerResupplyT = {
     }},
     Peds = {{
         MaxLen = 22,
-        LocalAddr = SplitGlobals("Local_932.f_73[bVar0 /*15*/]"),
+        LocalAddr = SplitGlobals("Local_935.f_73[bVar0 /*15*/]"),
         NextOffset = 15,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -97,7 +102,7 @@ BikerResupplyT = {
     }},
     Objects = {{
         MaxLen = 8,
-        LocalAddr = SplitGlobals("Local_932.f_33"),
+        LocalAddr = SplitGlobals("Local_935.f_33"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Global_Objects,
@@ -109,14 +114,23 @@ BikerResupplyT = {
     }},
     PropsToBring = {{
         MaxLen = 40,
-        LocalAddr = SplitGlobals("Local_932.f_635"),
+        LocalAddr = SplitGlobals("Local_935.f_635"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = nil,
         DisabledModels = nil,
         BringTargets = nil,
         PropsT = {}
-    }}
+    }},
+    SuppliesDelivered = {
+        {
+            MaxLen = 8,
+            LocalAddr = SplitGlobals("Local_935.f_796"),
+            NextOffset = 1,
+            DecreaseI = 0,
+            ToNum = 446
+        }
+    }
 }
 
 local BikerSell_DisabledVehs = {
@@ -124,7 +138,7 @@ local BikerSell_DisabledVehs = {
     {Model1 = "pounder", Model2 = "vigilante"},
     {Model1 = "buzzard2", Model2 = "raiju"},
     {Model1 = "bagger", Model2 = "oppressor"},
-    {Model1 = "dinghy3", Model2 = "seasparrow"},
+    {Model1 = "dinghy3", Model2 = "seabreeze"},
     {Model1 = "trash", Model2 = "toreador"},
     {Model1 = "trash2", Model2 = "toreador"},
     --{Model1 = "oppressor", Model2 = "toreador"}
@@ -134,10 +148,10 @@ BikerSellT = {
     AllowedToEdit = true,
     ScriptName = "gb_biker_contraband_sell",
     ClearedBlips = false,
-    BestSellMission = {LocalAddr = SplitGlobals("Local_699.f_17"), ToNum = 0},
+    BestSellMission = {LocalAddr = SplitGlobals("Local_702.f_17"), ToNum = 0},
     Vehicles = {{
         MaxLen = 4,
-        LocalAddr = SplitGlobals("Local_699.f_59"),
+        LocalAddr = SplitGlobals("Local_702.f_59"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = SupplyVehsList,
@@ -168,7 +182,7 @@ CasinoHeistT = {
     ClearedBlips = false,
     Vehicles = {{
         MaxLen = 8,
-        LocalAddr = SplitGlobals("Local_4275"),
+        LocalAddr = SplitGlobals("Local_4280"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = SupplyVehsList,
@@ -176,11 +190,12 @@ CasinoHeistT = {
         UpgradeType = 1,
         BringTargets = 200.0,
         HealthToGive = 50000,
-        VehiclesT = {}
+        VehiclesT = {},
+        IsSupply = true
     },
     {
         MaxLen = 30,
-        LocalAddr = SplitGlobals("Local_4275.f_947[iVar1 /*8*/]"),
+        LocalAddr = SplitGlobals("Local_4280.f_947[iVar1 /*8*/]"),
         NextOffset = 8,
         DecreaseI = 1,
         SelectedModels = VehsList,
@@ -188,33 +203,36 @@ CasinoHeistT = {
         UpgradeType = 0,
         BringTargets = 200.0,
         HealthToGive = nil,
-        VehiclesT = {}
+        VehiclesT = {},
+        IsSupply = false
     }},
     Peds = {{
         MaxLen = 35,
-        LocalAddr = SplitGlobals("Local_4275.f_106[bVar1 /*24*/]"),
+        LocalAddr = SplitGlobals("Local_4280.f_106[bVar1 /*24*/]"),
         NextOffset = 24,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
         DisabledModels = nil,
         PedSetts = 2,
         BringTargets = 200.0,
-        PedsT = {}
+        PedsT = {},
+        IsSupply = false
     }},
     Objects = {{
         MaxLen = 8,
-        LocalAddr = SplitGlobals("Local_4275"),
+        LocalAddr = SplitGlobals("Local_4280"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Global_Objects,
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
-        SpawnObjectsT = {}
+        SpawnObjectsT = {},
+        IsSupply = true
     }},
     PropsToBring = {{
         MaxLen = 25,
-        LocalAddr = SplitGlobals("Local_4275.f_1188[bVar0 /*4*/]"),
+        LocalAddr = SplitGlobals("Local_4280.f_1188[bVar0 /*4*/]"),
         NextOffset = 4,
         DecreaseI = 1,
         SelectedModels = nil,
@@ -242,7 +260,7 @@ CayoPericoHeistT = {
     ClearedBlips = false,
     Vehicles = {{
         MaxLen = 25,
-        LocalAddr = SplitGlobals("Local_13062.f_863[iVar0 /*8*/]"),
+        LocalAddr = SplitGlobals("Local_13262.f_863[iVar0 /*8*/]"),
         NextOffset = 8,
         DecreaseI = 1,
         SelectedModels = VehsList,
@@ -254,7 +272,7 @@ CayoPericoHeistT = {
     }},
     Peds = {{
         MaxLen = 30,
-        LocalAddr = SplitGlobals("Local_13062.f_112[iVar0 /*25*/]"),
+        LocalAddr = SplitGlobals("Local_13262.f_112[iVar0 /*25*/]"),
         NextOffset = 25,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -265,7 +283,7 @@ CayoPericoHeistT = {
     }},
     Objects = {{
         MaxLen = 10,
-        LocalAddr = SplitGlobals("Local_13062.f_2"),
+        LocalAddr = SplitGlobals("Local_13262.f_2"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Global_Objects,
@@ -276,7 +294,7 @@ CayoPericoHeistT = {
     }},
     PropsToBring = {{
         MaxLen = 31,
-        LocalAddr = SplitGlobals("Local_13062.f_1064[iParam0 /*5*/]"),
+        LocalAddr = SplitGlobals("Local_13262.f_1064[iParam0 /*5*/]"),
         NextOffset = 5,
         DecreaseI = 1,
         SelectedModels = nil,
@@ -312,7 +330,8 @@ ContrabandBuyT = {
         UpgradeType = 0,
         BringTargets = 200.0,
         HealthToGive = 50000,
-        VehiclesT = {}
+        VehiclesT = {},
+        IsSupply = true
     },
     {
         MaxLen = 6,
@@ -346,7 +365,8 @@ ContrabandBuyT = {
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
-        SpawnObjectsT = {}
+        SpawnObjectsT = {},
+        IsSupply = true
     }}
 }
 
@@ -398,7 +418,7 @@ GunrunningT = {
     ClearedBlips = false,
     Vehicles = {{
         MaxLen = 8,
-        LocalAddr = SplitGlobals("Local_1206.f_4"),
+        LocalAddr = SplitGlobals("Local_1209.f_4"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = SupplyVehsList,
@@ -411,7 +431,7 @@ GunrunningT = {
     },
     {
         MaxLen = 16,
-        LocalAddr = SplitGlobals("Local_1206.f_470[*5*]"),
+        LocalAddr = SplitGlobals("Local_1209.f_470[*5*]"),
         NextOffset = 5,
         DecreaseI = 1,
         SelectedModels = VehsList,
@@ -423,7 +443,7 @@ GunrunningT = {
     }},
     Peds = {{
         MaxLen = 29,
-        LocalAddr = SplitGlobals("Local_1206.f_92[*13*]"),
+        LocalAddr = SplitGlobals("Local_1209.f_92[*13*]"),
         NextOffset = 13,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -434,7 +454,7 @@ GunrunningT = {
     }},
     Objects = {{
         MaxLen = 8,
-        LocalAddr = SplitGlobals("Local_1206.f_4"),
+        LocalAddr = SplitGlobals("Local_1209.f_4"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Global_Objects,
@@ -477,7 +497,8 @@ BusinessBattlesT = {
         UpgradeType = 1,
         BringTargets = 200.0,
         HealthToGive = 50000,
-        VehiclesT = {}
+        VehiclesT = {},
+        IsSupply = true
     },
     {
         MaxLen = 30,
@@ -511,7 +532,8 @@ BusinessBattlesT = {
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
-        SpawnObjectsT = {}
+        SpawnObjectsT = {},
+        IsSupply = true
     }}
 }
 
@@ -538,7 +560,7 @@ BusinessBattles2T = {
     ClearedBlips = false,
     Vehicles = {{
         MaxLen = 10,
-        LocalAddr = SplitGlobals("Local_5090.f_843[*8*]"),
+        LocalAddr = SplitGlobals("Local_5223.f_843[iVar1 /*8*/]"),
         NextOffset = 8,
         DecreaseI = 1,
         SelectedModels = VehsList,
@@ -549,8 +571,8 @@ BusinessBattles2T = {
         VehiclesT = {}
     }},
     Peds = {{
-        MaxLen = 35,
-        LocalAddr = SplitGlobals("Local_5090.f_92[*25*]"),
+        MaxLen = 30,
+        LocalAddr = SplitGlobals("Local_5223.f_92[*25*]"),
         NextOffset = 25,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -561,14 +583,15 @@ BusinessBattles2T = {
     }},
     Objects = {{
         MaxLen = 8,
-        LocalAddr = SplitGlobals("Local_5090.f_2"),
+        LocalAddr = SplitGlobals("Local_5223.f_2"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Global_Objects,
         DisabledModels = nil,
         BringTargets = nil,
         ObjectsT = {},
-        SpawnObjectsT = {}
+        SpawnObjectsT = {},
+        IsSupply = true
     }}
 }
 
@@ -738,7 +761,7 @@ local MissionController_DisabledVehs = {
     {Model1 = "insurgent", Model2 = "tampa3", Upgrade = 2},
     {Model1 = "insurgent2", Model2 = "tampa3", Upgrade = 2},
     {Model1 = "predator", Model2 = "dinghy5", Upgrade = 2},
-    {Model1 = "buzzard", Model2 = "valkyrie", Upgrade = 2},
+    {Model1 = "buzzard", Model2 = "savage", Upgrade = 2},
     {Model1 = "valkyrie", Model2 = "savage", Upgrade = 2},
     {Model1 = "cargobob", Model2 = "cargobob", Upgrade = 2},
     {Model1 = "cargobob2", Model2 = "cargobob2", Upgrade = 2},
@@ -789,12 +812,215 @@ MissionController_ClassicHeistsT = {
     }},
     VehiclesGlobals = {{
         MaxLen = 32,
-        GlobalAddr = SplitGlobals("Global_4980736.f_91874[bVar0 /*529*/].f_12"),
-        NextOffset = 529,
+        GlobalAddr = SplitGlobals("Global_4980736.f_97409[bVar0 /*586*/].f_12"),
+        NextOffset = 586,
         DecreaseI = 1,
         SelectedModels = nil,
         DisabledModels = MissionController_DisabledVehs,
-        UpgradeGlobal = SplitGlobals("Global_4980736.f_91874[bVar0 /*529*/].f_111"),
+        UpgradeGlobal = SplitGlobals("Global_4980736.f_97409[bVar0 /*586*/].f_111"),
         VehiclesT = {}
+    }}
+}
+
+local GunRunning2_DisabledVehs = {
+    {Model1 = "bombushka", Model2 = "cargoplane", Upgrade = 0},
+    {Model1 = "granger", Model2 = "oppressor", Upgrade = 0},
+}
+
+Gunrunning2T = {
+    AllowedToEdit = true,
+    ScriptName = "fm_content_gunrunning",
+    ClearedBlips = false,
+    Vehicles = {{
+        MaxLen = 30,
+        LocalAddr = SplitGlobals("Local_5600.f_773[iVar0 /*8*/]"),
+        NextOffset = 8,
+        DecreaseI = 1,
+        SelectedModels = nil,
+        DisabledModels = GunRunning2_DisabledVehs,
+        UpgradeType = 0,
+        BringTargets = 200.0,
+        HealthToGive = 100,
+        VehiclesT = {},
+        IsSupply = false
+    }},
+    Peds = {{
+        MaxLen = 0,
+        LocalAddr = SplitGlobals("Local_1261.f_11"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    }},
+    Objects = {{
+        MaxLen = 0
+    }}
+}
+
+local PlaneModels = {
+    "cargoplane",
+    "titan",
+    "jet",
+    "bombushka",
+    "shamal",
+    "cuban800",
+    "avenger",
+    "besra",
+    "dodo",
+    "duster",
+    "howard",
+    "lazer",
+    "hydra",
+    "luxor",
+    "luxor2",
+    "mammatus",
+    "miljet",
+    "mogul",
+    "molotok",
+    "nimbus",
+    "nokota",
+    "pyro",
+    "rogue",
+    "seabreeze",
+    "starling",
+    "strikeforce",
+    "stunt",
+    "tula",
+    "velum",
+    "velum2",
+    "vestra",
+    "volatol"
+}
+
+local SmugglerSupplyVehs = {
+    "raiju"
+}
+
+local SmugglerDisabledVehs = {
+    {Model1 = "cargobob2", Model2 = "cargobob2", Upgrade = 1},
+    {Model1 = "titan", Model2 = "cargoplane", Upgrade = 1},
+    {Model1 = "cargoplane", Model2 = "cargoplane", Upgrade = 0},
+    {Model1 = "bombushka", Model2 = "raiju", Upgrade = 1}
+}
+
+SmugglerT = {
+    AllowedToEdit = true,
+    ScriptName = "gb_smuggler",
+    ClearedBlips = false,
+    --LocalsToEditT = {{Tick = 0, MaxTick = 500, LocalAddr = SplitGlobals("Local_1932.f_1035"), Num = 1, ToNum = 3}},
+    Vehicles = {{
+        MaxLen = 8,
+        LocalAddr = SplitGlobals("Local_1932.f_6"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = SmugglerSupplyVehs,
+        DisabledModels = nil,
+        UpgradeType = 1,
+        BringTargets = 200.0,
+        HealthToGive = 50000,
+        VehiclesT = {},
+        IsSupply = true
+    },
+    {
+        MaxLen = 23,
+        LocalAddr = SplitGlobals("Local_1932.f_530[iVar0 /*9*/]"),
+        NextOffset = 9,
+        DecreaseI = 1,
+        SelectedModels = PlaneModels,
+        DisabledModels = SmugglerDisabledVehs,
+        UpgradeType = 0,
+        BringTargets = 200.0,
+        HealthToGive = 50000,
+        VehiclesT = {}
+    }},
+    Peds = {{
+        MaxLen = 29,
+        LocalAddr = SplitGlobals("Local_1932.f_94[iVar0 /*15*/]"),
+        NextOffset = 15,
+        DecreaseI = 1,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    }},
+    Objects = {{
+        MaxLen = 8,
+        LocalAddr = SplitGlobals("Local_1932.f_6"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = Global_Objects,
+        DisabledModels = nil,
+        BringTargets = nil,
+        ObjectsT = {},
+        SpawnObjectsT = {},
+        IsSupply = true
+    }},
+    PropsToBring = {{
+        MaxLen = 22,
+        LocalAddr = SplitGlobals("Local_1932.f_874"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = nil,
+        DisabledModels = nil,
+        BringTargets = nil,
+        PropsT = {}
+    }}
+}
+
+BusinessBattlesSellT = {
+    AllowedToEdit = true,
+    ScriptName = "business_battles_sell",
+    ClearedBlips = false,
+    Vehicles = {{
+        MaxLen = 0,
+        LocalAddr = SplitGlobals("Local_2399"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = SupplyVehsList,
+        DisabledModels = nil,
+        UpgradeType = 1,
+        BringTargets = 200.0,
+        HealthToGive = 50000,
+        VehiclesT = {},
+        IsSupply = true
+    },
+    {
+        MaxLen = 0,
+        LocalAddr = SplitGlobals("Local_2399.f_624[*7*]"),
+        NextOffset = 7,
+        DecreaseI = 1,
+        SelectedModels = VehsList,
+        DisabledModels = nil,
+        UpgradeType = 0,
+        BringTargets = 200.0,
+        HealthToGive = nil,
+        VehiclesT = {}
+    }},
+    Peds = {{
+        MaxLen = 0,
+        LocalAddr = SplitGlobals("Local_2399.f_98[*15*]"),
+        NextOffset = 15,
+        DecreaseI = 1,
+        SelectedModels = Peds_Models_List,
+        DisabledModels = nil,
+        PedSetts = 2,
+        BringTargets = 200.0,
+        PedsT = {}
+    }},
+    Objects = {{
+        MaxLen = 0,
+        LocalAddr = SplitGlobals("uLocal_2399.f_1110"),
+        NextOffset = 1,
+        DecreaseI = 0,
+        SelectedModels = Global_Objects,
+        DisabledModels = nil,
+        BringTargets = nil,
+        ObjectsT = {},
+        SpawnObjectsT = {},
+        IsSupply = true
     }}
 }

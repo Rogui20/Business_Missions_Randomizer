@@ -1,5 +1,9 @@
 util.require_natives(1676318796)
 
+Wait = util.yield
+joaat = util.joaat
+Print = util.toast
+
 VehsList = {}
 local VehTable = util.get_vehicles()
 for index, vehs in pairs(VehTable) do
@@ -13,12 +17,9 @@ end
 require "bestmissions.ped_list"
 require "bestmissions.mission_numbers"
 require "bestmissions.mission_locals"
+require "bestmissions.mission_patches"
 
---Made for version 1.67
-
-Wait = util.yield
-joaat = util.joaat
-Print = util.toast
+--Made for version 1.68
 
 local SupplyVehsList = {
     "scramjet",
@@ -48,7 +49,10 @@ menu.toggle(MissionEnhancerMenu, "Enhance Missions", {}, "Let it fun.", function
 	ImproveMissions = Toggle
 	if ImproveMissions then
 		while ImproveMissions do
+            ScriptHandler(BusinessBattlesSellT)
+            ScriptHandler(SmugglerT)
             ScriptHandler(GunrunningT)
+            ScriptHandler(Gunrunning2T)
             ScriptHandler(ContrabandSellT)
             ScriptHandler(ContrabandBuyT)
             ScriptHandler(CayoPericoHeistT)
@@ -74,6 +78,16 @@ menu.toggle(MissionEnhancerMenu, "Only Track Entities", {}, "", function(Toggle)
         MaxCreateAttemps = 3
     end
     if OnlyTrackEnts then
+        MaxCreateAttemps = 0
+    end
+end)
+local OnlyReplaceMissionTargets = false
+menu.toggle(MissionEnhancerMenu, "Only Replace Mission Targets", {}, "", function(Toggle)
+	OnlyReplaceMissionTargets = Toggle
+    if not OnlyReplaceMissionTargets then
+        MaxCreateAttemps = 3
+    end
+    if OnlyReplaceMissionTargets then
         MaxCreateAttemps = 0
     end
 end)
@@ -134,6 +148,15 @@ menu.slider_float(MissionEnhancerMenu, "Max Distance", {"maxdistancetobring"}, "
     DistToCheck = OnChange / 100
 end)
 
+local EditLocals = false
+menu.toggle(MissionEnhancerMenu, "Edit Locals", {}, "", function(Toggle)
+	EditLocals = Toggle
+end, EditLocals)
+local DeliverAllSupplies = false
+menu.action(MissionEnhancerMenu, "Deliver All Supplies", {}, "", function(Toggle)
+	DeliverAllSupplies = true
+end)
+
 local AllowedMissionsMenu = menu.list(MissionEnhancerMenu, "Allowed Missions To Edit", {}, "To avoid bothering other players.")
 
 menu.toggle(AllowedMissionsMenu, "Biker Resupply", {}, "", function(Toggle)
@@ -142,6 +165,9 @@ end, BikerResupplyT.AllowedToEdit)
 menu.toggle(AllowedMissionsMenu, "Biker Sell", {}, "", function(Toggle)
 	BikerSellT.AllowedToEdit = Toggle
 end, BikerSellT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Nightclub Sell", {}, "", function(Toggle)
+	BusinessBattlesSellT.AllowedToEdit = Toggle
+end, BusinessBattlesSellT.AllowedToEdit)
 menu.toggle(AllowedMissionsMenu, "Casino Heist Preps", {}, "", function(Toggle)
 	CasinoHeistT.AllowedToEdit = Toggle
 end, CasinoHeistT.AllowedToEdit)
@@ -160,6 +186,9 @@ end, ContrabandSellT.AllowedToEdit)
 menu.toggle(AllowedMissionsMenu, "Gunrunning", {}, "", function(Toggle)
 	GunrunningT.AllowedToEdit = Toggle
 end, GunrunningT.AllowedToEdit)
+menu.toggle(AllowedMissionsMenu, "Gunrunning 2", {}, "", function(Toggle)
+	Gunrunning2T.AllowedToEdit = Toggle
+end, Gunrunning2T.AllowedToEdit)
 menu.toggle(AllowedMissionsMenu, "Business Battles", {}, "", function(Toggle)
 	BusinessBattlesT.AllowedToEdit = Toggle
 end, BusinessBattlesT.AllowedToEdit)
@@ -175,6 +204,11 @@ end, BikerRescueContactT.AllowedToEdit)
 menu.toggle(AllowedMissionsMenu, "Classic Heists", {}, "", function(Toggle)
 	MissionController_ClassicHeistsT.AllowedToEdit = Toggle
 end, MissionController_ClassicHeistsT.AllowedToEdit)
+
+local MissionPatcherMenu = menu.list(menu.my_root(), "Mission Patcher", {}, "")
+menu.toggle_loop(MissionPatcherMenu, "Patch Biker Resupply Missions", {}, "", function(Toggle)
+    PatchScript(BikerResupplyPatch)
+end)
 
 local MissionStarterMenu = menu.list(menu.my_root(), "Mission Starter (Experimental)", {}, "Make other players play fun missions.")
 
@@ -361,12 +395,14 @@ end)
 
 menu.action(MissionStarterMenu, "Stop Mission", {}, "", function(Toggle)
     local PlayerID = PLAYER.PLAYER_ID()
+    memory.write_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * PlayerID), -1)
     memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * PlayerID), -1)
     memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * PlayerID), -1)
 end)
 
 menu.action(MissionStarterMenu, "Stop All Missions", {}, "", function(Toggle)
     for i = 1, 30 do
+        memory.write_int(memory.script_global(MissionGlobals.WhichMissionStart + MissionGlobals.NextPlayer * (i - 1)), -1)
         memory.write_int(memory.script_global(MissionGlobals.WhichMissionIn + MissionGlobals.NextPlayer * (i - 1)), -1)
         memory.write_int(memory.script_global(MissionGlobals.InWhichPlayerIndex + MissionGlobals.NextPlayer * (i - 1)), -1)
     end
@@ -526,6 +562,31 @@ menu.toggle_loop(MissionSettingsMenu, "Avoid Lupe Missions", {}, "", function(To
 end)
 
 local AppsMenu = menu.list(menu.my_root(), "Business Apps", {}, "Manage businesses anywhere!")
+menu.action(AppsMenu, "Open Bunker App", {}, "", function(toggle)
+	SCRIPT.REQUEST_SCRIPT("appBunkerBusiness")
+	while not SCRIPT.HAS_SCRIPT_LOADED("appBunkerBusiness") do
+		Wait()
+	end
+	SYSTEM.START_NEW_SCRIPT("appBunkerBusiness", 1424)
+	SCRIPT.SET_SCRIPT_AS_NO_LONGER_NEEDED("appBunkerBusiness")
+end)
+menu.action(AppsMenu, "Open Hangar App", {}, "", function(toggle)
+	SCRIPT.REQUEST_SCRIPT("appsmuggler")
+	while not SCRIPT.HAS_SCRIPT_LOADED("appsmuggler") do
+		Wait()
+	end
+	SYSTEM.START_NEW_SCRIPT("appsmuggler", 4592)
+	SCRIPT.SET_SCRIPT_AS_NO_LONGER_NEEDED("appsmuggler")
+end)
+menu.action(AppsMenu, "Open Nightclub App", {}, "", function(toggle)
+	SCRIPT.REQUEST_SCRIPT("appBusinessHub")
+	while not SCRIPT.HAS_SCRIPT_LOADED("appBusinessHub") do
+		Wait()
+	end
+	SYSTEM.START_NEW_SCRIPT("appBusinessHub", 1424)
+	SCRIPT.SET_SCRIPT_AS_NO_LONGER_NEEDED("appBusinessHub")
+end)
+
 local BikerAppsMenu = menu.list(AppsMenu, "Biker Apps", {}, "")
 
 menu.action(BikerAppsMenu, "Open Road App", {}, "", function(Toggle)
@@ -753,16 +814,18 @@ menu.toggle(MiscMenu, "Maintain Stealth", {""}, "", function(Toggle)
         while MaintainStealth do
             local PlayerPed = PLAYER.PLAYER_PED_ID()
             for index, peds in pairs(entities.get_all_peds_as_handles()) do
-                if not ENTITY.IS_ENTITY_DEAD(peds) then
-                    if not PED.IS_PED_A_PLAYER(peds) then
-                        if ENTITY.IS_ENTITY_A_MISSION_ENTITY(peds) then
-                            if PED.GET_RELATIONSHIP_BETWEEN_PEDS(pesd, PlayerPed) ~= 1 then
-                                if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(peds) then
-                                    PED.SET_PED_HEARING_RANGE(peds, 0.0)
-                                    PED.SET_PED_SEEING_RANGE(peds, 0.0)
-                                    PED.SET_PED_ARMOUR(peds, 0)
-                                    if ENTITY.GET_ENTITY_HEALTH(peds) > 101 then
-                                        ENTITY.SET_ENTITY_HEALTH(peds, 101)
+                if peds ~= PlayerPed then
+                    if not ENTITY.IS_ENTITY_DEAD(peds) then
+                        if not PED.IS_PED_A_PLAYER(peds) then
+                            if ENTITY.IS_ENTITY_A_MISSION_ENTITY(peds) then
+                                if PED.GET_RELATIONSHIP_BETWEEN_PEDS(pesd, PlayerPed) ~= 1 then
+                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(peds) then
+                                        PED.SET_PED_HEARING_RANGE(peds, 0.0)
+                                        PED.SET_PED_SEEING_RANGE(peds, 0.0)
+                                        PED.SET_PED_ARMOUR(peds, 0)
+                                        if ENTITY.GET_ENTITY_HEALTH(peds) > 101 then
+                                            ENTITY.SET_ENTITY_HEALTH(peds, 101)
+                                        end
                                     end
                                 end
                             end
@@ -816,7 +879,7 @@ end)
 menu.text_input(DevToolsMenu, "Copy Local Addr", {"copylocaladdr"}, "For devs.", function(OnChange)
     local TXTToNumber = SplitGlobals(OnChange)
     if TXTToNumber ~= nil then
-        util.copy_to_clipboard(string.format("%X", memory.script_local("fm_content_cargo", TXTToNumber)))
+        util.copy_to_clipboard(string.format("%X", memory.script_local("fm_content_phantom_car", TXTToNumber)))
     end
 end)
 
@@ -859,17 +922,17 @@ function StartAppScript(ScriptName, StackSize, PropertyNumber, PropertyID)
     end
 end
 
-menu.action(DevToolsMenu, "freemode Host", {}, "", function(Toggle)
-	util.spoof_script("freemode", function()
-        Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
-        --NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
-        --Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
-    end)
-    util.spoof_script("am_launcher", function()
-        --Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
-        --NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
-        --Print(NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT())
-    end)
+menu.action(DevToolsMenu, "Sell Event", {}, "", function(Toggle)
+    local Args = memory.alloc(8*4)
+    memory.write_int(Args + 8 * 0, 259469385)
+    memory.write_int(Args + 8 * 1, PLAYER.PLAYER_ID())
+    memory.write_int(Args + 8 * 2, 0)
+    memory.write_int(Args + 8 * 3, 3)
+    SCRIPT._SEND_TU_SCRIPT_EVENT_NEW(1, Args, 4, 1 << PLAYER.PLAYER_ID(), 259469385)
+end)
+
+menu.action(DevToolsMenu, "GB_DELIVERY Instances", {}, "", function(Toggle)
+    Print(SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("gb_delivery")))
 end)
 
 menu.action(DevToolsMenu, "freemode Request Host", {}, "", function(Toggle)
@@ -903,8 +966,13 @@ menu.toggle_loop(DevToolsMenu, "Be Host of Mission Controller", {}, "", function
 end)
 
 menu.action(DevToolsMenu, "B Battle2 Args", {}, "", function(Toggle)
-    memory.write_int(memory.script_global(SplitGlobals("Global_2756336.f_183")), 1)
-    memory.write_int(memory.script_global(SplitGlobals("Global_2756336.f_184")), 2)
+    memory.write_int(memory.script_global(SplitGlobals("Global_2698947.f_183")), 1)
+    memory.write_int(memory.script_global(SplitGlobals("Global_2698947.f_184")), 2)
+end)
+
+menu.action(DevToolsMenu, "Phantom Car Args", {}, "", function(Toggle)
+    memory.write_int(memory.script_global(SplitGlobals("Global_2698947.f_183")), 0)
+    memory.write_int(memory.script_global(SplitGlobals("Global_2698947.f_184")), 0)
 end)
 
 function CopyVehSettingsToAnotherVeh(CopyVehSetts, ToVeh)
@@ -953,6 +1021,11 @@ function SetSupplyVehSettings(Veh, Health)
     VEHICLE.SET_VEHICLE_ALLOW_HOMING_MISSLE_LOCKON(Veh, false, false)
     VEHICLE.SET_VEHICLE_TYRES_CAN_BURST(Veh, false)
     VEHICLE.SET_VEHICLE_STRONG(Veh, true)
+    VEHICLE.SET_VEHICLE_DAMAGE_SCALES(Veh, 0.1, 0.1, 0.1, 0.1)
+    VEHICLE.SET_VEHICLE_DAMAGE_SCALE(Veh, 0.1)
+    VEHICLE.SET_VEHICLE_WEAPON_DAMAGE_SCALE(Veh, 0.1)
+    VEHICLE.SET_DISABLE_VEHICLE_EXPLOSIONS_DAMAGE(true)
+    VEHICLE.SET_VEHICLE_EXPLODES_ON_HIGH_EXPLOSION_DAMAGE(Veh, false)
     for k = 0, 48 do
         local NumMods = entities.get_upgrade_max_value(Veh, k)
         if NumMods > 0 then
@@ -1041,17 +1114,30 @@ function ScriptHandler(ArgsTable)
             end)
             if IsParticipant then
                 local IsHost = false
+                local ScriptStatus = 0
+                if ArgsTable.NonHostTick == nil then
+                    ArgsTable.NonHostTick = 0
+                end
                 util.spoof_script(ScriptName, function()
-                    IsHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
-                    if not IsHost then
-                        NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
-                    end
-                    IsHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
-                    if IsHost then
-                        NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
+                    ScriptStatus = NETWORK.NETWORK_GET_SCRIPT_STATUS()
+                    if ScriptStatus == 2 then
+                        IsHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+                        if not IsHost then
+                            NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+                            ArgsTable.NonHostTick = ArgsTable.NonHostTick + 1
+                            if ArgsTable.NonHostTick > 1000 then
+                                util.request_script_host(ScriptName)
+                            end
+                        else
+                            ArgsTable.NonHostTick = 0
+                        end
+                        IsHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+                        if IsHost then
+                            NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
+                        end
                     end
                 end)
-                if IsHost then
+                if IsHost and ScriptStatus == 2 then
                     local PlayerPed = PLAYER.PLAYER_PED_ID()
                     local PlPos = ENTITY.GET_ENTITY_COORDS(PlayerPed)
                     if ArgsTable.VehiclesGlobals ~= nil then
@@ -1086,28 +1172,63 @@ function ScriptHandler(ArgsTable)
                             end
                         end
                     end
-                    if ArgsTable.LocalToEditT ~= nil then
-                        if ArgsTable.LocalToEditT.Tick < ArgsTable.LocalToEditT.MaxTick then
-                            ArgsTable.LocalToEditT.Tick = ArgsTable.LocalToEditT.Tick + 1
-                            if ArgsTable.LocalToEditT.Tick >= ArgsTable.LocalToEditT.MaxTick then
-                                if memory.read_int(memory.script_local(ScriptName, ArgsTable.LocalToEditT.LocalAddr)) == ArgsTable.LocalToEditT.Num then
-                                    memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalToEditT.LocalAddr), ArgsTable.LocalToEditT.ToNum)
-                                end
-                            end
-                        end
-                    end
-                    if ArgsTable.LocalsToEditT ~= nil then
-                        for k = 1, #ArgsTable.LocalsToEditT do
-                            if ArgsTable.LocalsToEditT[k].MaxTick == nil and ArgsTable.LocalsToEditT[k].Num == nil and ArgsTable.LocalsToEditT[k].Tick then
-                                memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr), ArgsTable.LocalsToEditT[k].ToNum)
-                            else
-                                ArgsTable.LocalsToEditT[k].Tick = ArgsTable.LocalsToEditT[k].Tick + 1
-                                if ArgsTable.LocalsToEditT[k].Tick >= ArgsTable.LocalsToEditT[k].MaxTick then
-                                    if memory.read_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr)) == ArgsTable.LocalsToEditT[k].Num then
-                                        memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr), ArgsTable.LocalsToEditT[k].ToNum)
+                    if EditLocals then
+                        if ArgsTable.LocalToEditT ~= nil then
+                            if ArgsTable.LocalToEditT.Tick < ArgsTable.LocalToEditT.MaxTick then
+                                ArgsTable.LocalToEditT.Tick = ArgsTable.LocalToEditT.Tick + 1
+                                if ArgsTable.LocalToEditT.Tick >= ArgsTable.LocalToEditT.MaxTick then
+                                    if memory.read_int(memory.script_local(ScriptName, ArgsTable.LocalToEditT.LocalAddr)) == ArgsTable.LocalToEditT.Num then
+                                        memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalToEditT.LocalAddr), ArgsTable.LocalToEditT.ToNum)
                                     end
                                 end
                             end
+                        end
+                        if ArgsTable.LocalsToEditT ~= nil then
+                            --if ArgsTable.LocalsToEditT.IndexFound == nil then
+                                --ArgsTable.LocalsToEditT.IndexFound = 0
+                            --end
+                            --if ArgsTable.LocalsToEditT.IndexFound == 0 then
+                                for k = 1, #ArgsTable.LocalsToEditT do
+                                    if ArgsTable.LocalsToEditT[k].MaxTick == nil and ArgsTable.LocalsToEditT[k].Num == nil and ArgsTable.LocalsToEditT[k].Tick then
+                                        memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr), ArgsTable.LocalsToEditT[k].ToNum)
+                                    else
+                                        ArgsTable.LocalsToEditT[k].Tick = ArgsTable.LocalsToEditT[k].Tick + 1
+                                        if ArgsTable.LocalsToEditT[k].Tick >= ArgsTable.LocalsToEditT[k].MaxTick then
+                                            if memory.read_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr)) == ArgsTable.LocalsToEditT[k].Num then
+                                                --ArgsTable.LocalsToEditT.IndexFound = k
+                                                memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[k].LocalAddr), ArgsTable.LocalsToEditT[k].ToNum)
+                                                --break
+                                            end
+                                        end
+                                    end
+                                end
+                            --else
+                            --    local Index = ArgsTable.LocalsToEditT.IndexFound
+                            --    if ArgsTable.LocalsToEditT[Index].MaxTick == nil and ArgsTable.LocalsToEditT[Index].Num == nil and ArgsTable.LocalsToEditT[Index].Tick then
+                            --        memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[Index].LocalAddr), ArgsTable.LocalsToEditT[Index].ToNum)
+                            --    else
+                            --        ArgsTable.LocalsToEditT[Index].Tick = ArgsTable.LocalsToEditT[Index].Tick + 1
+                            --        if ArgsTable.LocalsToEditT[Index].Tick >= ArgsTable.LocalsToEditT[Index].MaxTick then
+                            --            if memory.read_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[Index].LocalAddr)) == ArgsTable.LocalsToEditT[Index].Num then
+                            --                memory.write_int(memory.script_local(ScriptName, ArgsTable.LocalsToEditT[Index].LocalAddr), ArgsTable.LocalsToEditT[Index].ToNum)
+                            --            end
+                            --        end
+                            --    end
+                            --end
+                        end
+                    end
+                    if DeliverAllSupplies then
+                        if ArgsTable.SuppliesDelivered ~= nil then
+                            for k = 1, #ArgsTable.SuppliesDelivered do
+                                for i = 1, ArgsTable.SuppliesDelivered[k].MaxLen do
+                                    local LocalAddr = ArgsTable.SuppliesDelivered[k].LocalAddr
+                                    local NextOffset = ArgsTable.SuppliesDelivered[k].NextOffset
+                                    local DecreaseI = ArgsTable.SuppliesDelivered[k].DecreaseI
+                                    local ToNum = ArgsTable.SuppliesDelivered[k].ToNum
+                                    memory.write_int(memory.script_local(ScriptName, LocalAddr + NextOffset * (i - DecreaseI)), ToNum)
+                                end
+                            end
+                            DeliverAllSupplies = false
                         end
                     end
                     if AlwaysBestSellMission then
@@ -1115,56 +1236,71 @@ function ScriptHandler(ArgsTable)
                             memory.write_int(memory.script_local(ScriptName, ArgsTable.BestSellMission.LocalAddr), ArgsTable.BestSellMission.ToNum)
                         end
                     end
+                    local MoreCreateAttemptsVeh = 0
                     for k = 1, #ArgsTable.Vehicles do
                         for i = 1, ArgsTable.Vehicles[k].MaxLen do
                             if ArgsTable.Vehicles[k].VehiclesT[i] == nil then
-                                local OldNetID = memory.read_int(memory.script_local(ScriptName, ArgsTable.Vehicles[k].LocalAddr + ArgsTable.Vehicles[k].NextOffset * (i - ArgsTable.Vehicles[k].DecreaseI)))
-                                if OldNetID > 0 then
-                                    local OldVehHandle = 0
-                                    util.spoof_script(ScriptName, function()
-                                        OldVehHandle = NETWORK.NET_TO_VEH(OldNetID)
-                                    end)
-                                    if OldVehHandle ~= 0 then
-                                        if not ENTITY.IS_ENTITY_DEAD(OldVehHandle) then
-                                            local EntType = ENTITY.GET_ENTITY_TYPE(OldVehHandle)
-                                            if EntType == 2 then
-                                                local VehModelToUse = ""
-                                                if ArgsTable.Vehicles[k].SelectedModels ~= nil then
-                                                    VehModelToUse = ArgsTable.Vehicles[k].SelectedModels[math.random(#ArgsTable.Vehicles[k].SelectedModels)]
-                                                end
-                                                local EntModel = ENTITY.GET_ENTITY_MODEL(OldVehHandle)
-                                                local UpgradeType = 1
-                                                local HandleToSet = 0
-                                                local OldHandleToSet = OldVehHandle
-                                                local NetIDToSet = 0
-                                                if ArgsTable.Vehicles[k].UpgradeType ~= nil then
-                                                    UpgradeType = ArgsTable.Vehicles[k].UpgradeType
-                                                end
-                                                if not util.is_this_model_a_trailer(EntModel) then
-                                                    if ArgsTable.Vehicles[k].DisabledModels ~= nil then
-                                                        for j = 1, #ArgsTable.Vehicles[k].DisabledModels do
-                                                            if EntModel == joaat(ArgsTable.Vehicles[k].DisabledModels[j].Model1) then
-                                                                if ArgsTable.Vehicles[k].DisabledModels[j].Model2 ~= nil then
-                                                                    VehModelToUse = ArgsTable.Vehicles[k].DisabledModels[j].Model2
-                                                                    if ArgsTable.Vehicles[k].DisabledModels[j].Model1 == ArgsTable.Vehicles[k].DisabledModels[j].Model2 then
-                                                                        HandleToSet = OldVehHandle
-                                                                        NetIDToSet = OldNetID
-                                                                        OldHandleToSet = 0
+                                local CanReplace = true
+                                if OnlyReplaceMissionTargets then
+                                    if ArgsTable.Vehicles[k].IsSupply ~= nil then
+                                        if not ArgsTable.Vehicles[k].IsSupply then
+                                            CanReplace = false
+                                        else
+                                            MoreCreateAttemptsVeh = 3
+                                        end
+                                    else
+                                        CanReplace = false
+                                    end
+                                end
+                                if CanReplace then
+                                    local OldNetID = memory.read_int(memory.script_local(ScriptName, ArgsTable.Vehicles[k].LocalAddr + ArgsTable.Vehicles[k].NextOffset * (i - ArgsTable.Vehicles[k].DecreaseI)))
+                                    if OldNetID > 0 then
+                                        local OldVehHandle = 0
+                                        util.spoof_script(ScriptName, function()
+                                            OldVehHandle = NETWORK.NET_TO_VEH(OldNetID)
+                                        end)
+                                        if OldVehHandle ~= 0 then
+                                            if not ENTITY.IS_ENTITY_DEAD(OldVehHandle) then
+                                                local EntType = ENTITY.GET_ENTITY_TYPE(OldVehHandle)
+                                                if EntType == 2 then
+                                                    local VehModelToUse = ""
+                                                    if ArgsTable.Vehicles[k].SelectedModels ~= nil then
+                                                        VehModelToUse = ArgsTable.Vehicles[k].SelectedModels[math.random(#ArgsTable.Vehicles[k].SelectedModels)]
+                                                    end
+                                                    local EntModel = ENTITY.GET_ENTITY_MODEL(OldVehHandle)
+                                                    local UpgradeType = 1
+                                                    local HandleToSet = 0
+                                                    local OldHandleToSet = OldVehHandle
+                                                    local NetIDToSet = 0
+                                                    if ArgsTable.Vehicles[k].UpgradeType ~= nil then
+                                                        UpgradeType = ArgsTable.Vehicles[k].UpgradeType
+                                                    end
+                                                    if not util.is_this_model_a_trailer(EntModel) then
+                                                        if ArgsTable.Vehicles[k].DisabledModels ~= nil then
+                                                            for j = 1, #ArgsTable.Vehicles[k].DisabledModels do
+                                                                if EntModel == joaat(ArgsTable.Vehicles[k].DisabledModels[j].Model1) then
+                                                                    if ArgsTable.Vehicles[k].DisabledModels[j].Model2 ~= nil then
+                                                                        VehModelToUse = ArgsTable.Vehicles[k].DisabledModels[j].Model2
+                                                                        if ArgsTable.Vehicles[k].DisabledModels[j].Model1 == ArgsTable.Vehicles[k].DisabledModels[j].Model2 then
+                                                                            HandleToSet = OldVehHandle
+                                                                            NetIDToSet = OldNetID
+                                                                            OldHandleToSet = 0
+                                                                        end
+                                                                    end
+                                                                    if ArgsTable.Vehicles[k].DisabledModels[j].UpgradeType ~= nil then
+                                                                        UpgradeType = ArgsTable.Vehicles[k].DisabledModels[j].UpgradeType
                                                                     end
                                                                 end
-                                                                if ArgsTable.Vehicles[k].DisabledModels[j].UpgradeType ~= nil then
-                                                                    UpgradeType = ArgsTable.Vehicles[k].DisabledModels[j].UpgradeType
-                                                                end
+                                                            end
+                                                            if VehModelToUse == "" then
+                                                                VehModelToUse = EntModel
+                                                                HandleToSet = OldVehHandle
+                                                                NetIDToSet = OldNetID
+                                                                OldHandleToSet = 0
                                                             end
                                                         end
-                                                        if VehModelToUse == "" then
-                                                            VehModelToUse = EntModel
-                                                            HandleToSet = OldVehHandle
-                                                            NetIDToSet = OldNetID
-                                                            OldHandleToSet = 0
-                                                        end
+                                                        ArgsTable.Vehicles[k].VehiclesT[i] = {Model = VehModelToUse, NetID = NetIDToSet, Handle = HandleToSet, OldHandle = OldHandleToSet, UpgradeType = UpgradeType, OldNetID = OldNetID, Attempts = 0 - MoreCreateAttemptsVeh}
                                                     end
-                                                    ArgsTable.Vehicles[k].VehiclesT[i] = {Model = VehModelToUse, NetID = NetIDToSet, Handle = HandleToSet, OldHandle = OldHandleToSet, UpgradeType = UpgradeType, OldNetID = OldNetID, Attempts = 0}
                                                 end
                                             end
                                         end
@@ -1173,7 +1309,7 @@ function ScriptHandler(ArgsTable)
                             end
                             if ArgsTable.Vehicles[k].VehiclesT[i] ~= nil then
                                 if ArgsTable.Vehicles[k].VehiclesT[i].NetID == 0 then
-                                    if ArgsTable.Vehicles[k].VehiclesT[i].Attempts < MaxCreateAttemps then
+                                    if ArgsTable.Vehicles[k].VehiclesT[i].Attempts < MaxCreateAttemps + MoreCreateAttemptsVeh then
                                         if not STREAMING.HAS_MODEL_LOADED(joaat(ArgsTable.Vehicles[k].VehiclesT[i].Model)) then
                                             STREAMING.REQUEST_MODEL(joaat(ArgsTable.Vehicles[k].VehiclesT[i].Model))
                                         end
@@ -1262,7 +1398,7 @@ function ScriptHandler(ArgsTable)
                                                         if not ENTITY.IS_ENTITY_AT_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle, PlayerPed, ArgsTable.Vehicles[k].BringTargets, ArgsTable.Vehicles[k].BringTargets, ArgsTable.Vehicles[k].BringTargets, false, true, 0) then
                                                             local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, ArgsTable.Vehicles[k].BringTargets)
                                                             if FoundCoords then
-                                                                if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                                if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, 0, true) then
                                                                     if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
                                                                         ENTITY.SET_ENTITY_COORDS(ArgsTable.Vehicles[k].VehiclesT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
                                                                         ENTITY.SET_ENTITY_HEADING(ArgsTable.Vehicles[k].VehiclesT[i].Handle, OutHeading)
@@ -1291,7 +1427,7 @@ function ScriptHandler(ArgsTable)
                                             if CanSetCoords then
                                                 local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
                                                 if FoundCoords then
-                                                    if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                    if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, 0, true) then
                                                         if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
                                                             ENTITY.SET_ENTITY_COORDS(ArgsTable.Vehicles[k].VehiclesT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
                                                             ENTITY.SET_ENTITY_HEADING(ArgsTable.Vehicles[k].VehiclesT[i].Handle, OutHeading)
@@ -1316,13 +1452,23 @@ function ScriptHandler(ArgsTable)
                                     end
                                     if InvincibleSupply then
                                         if ArgsTable.Vehicles[k].IsSupply ~= nil then
-                                            if ArgsTable.Vehicles[k].IsSupply then
-                                                ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Vehicles[k].VehiclesT[i].Handle, true)
+                                            if ArgsTable.Vehicles[k].IsSupply == true then
+                                                if not entities.is_invulnerable(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
+                                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
+                                                        ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Vehicles[k].VehiclesT[i].Handle, true)
+                                                        Print("Invincible")
+                                                    end
+                                                end
                                             end
                                         end
                                     end
                                     if ArgsTable.Vehicles[k].VehiclesT[i].UpgradeType == 2 then
-                                        ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Vehicles[k].VehiclesT[i].Handle, true)
+                                        if not entities.is_invulnerable(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
+                                            if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
+                                                ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Vehicles[k].VehiclesT[i].Handle, true)
+                                                Print("Invincible")
+                                            end
+                                        end
                                     end
                                     if ENTITY.IS_ENTITY_DEAD(ArgsTable.Vehicles[k].VehiclesT[i].Handle) or not ENTITY.DOES_ENTITY_EXIST(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then -- or not ENTITY.IS_ENTITY_A_MISSION_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
                                         if ArgsTable.Vehicles[k].VehiclesT[i].BlipHandle ~= nil then
@@ -1520,7 +1666,7 @@ function ScriptHandler(ArgsTable)
                                                                 if Veh ~= 0 then
                                                                     local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, ArgsTable.Peds[j].PedsT[i].BringTargets)
                                                                     if FoundCoords then
-                                                                        if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 1.0, false, true, true, true, false, 0, true) then
+                                                                        if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, 0, true) then
                                                                             if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(Veh) then
                                                                                 ENTITY.SET_ENTITY_COORDS(Veh, OutPos.x, OutPos.y, OutPos.z)
                                                                                 ENTITY.SET_ENTITY_HEADING(Veh, OutHeading)
@@ -1555,7 +1701,7 @@ function ScriptHandler(ArgsTable)
                                                 if Veh ~= 0 then
                                                     local OutPos, OutHeading, FoundCoords = FindRightSpawnVeh(PlPos.x, PlPos.y, PlPos.z, 10, MaxDistToBring)
                                                     if FoundCoords then
-                                                        if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 5.0, false, true, true, true, false, 0, true) then
+                                                        if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, 0, true) then
                                                             if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(Veh) then
                                                                 ENTITY.SET_ENTITY_COORDS(Veh, OutPos.x, OutPos.y, OutPos.z)
                                                                 ENTITY.SET_ENTITY_HEADING(Veh, OutHeading)
@@ -1618,39 +1764,54 @@ function ScriptHandler(ArgsTable)
                                     end
                                 end
                             end
+                            local MoreCreateAttemptsObj = 0
                             if ArgsTable.Objects[j].ObjectsT[i] == nil then
-                                local OldNetID = memory.read_int(memory.script_local(ScriptName, ArgsTable.Objects[j].LocalAddr + ArgsTable.Objects[j].NextOffset * (i - ArgsTable.Objects[j].DecreaseI)))
-                                if OldNetID > 0 then
-                                    local OldObjHandle = 0
-                                    util.spoof_script(ScriptName, function()
-                                        OldObjHandle = NETWORK.NET_TO_OBJ(OldNetID)
-                                    end)
-                                    if OldObjHandle ~= 0 then
-                                        local EntType = ENTITY.GET_ENTITY_TYPE(OldObjHandle)
-                                        if EntType == 3 then
-                                            if not ENTITY.IS_ENTITY_ATTACHED_TO_ANY_PED(OldObjHandle) then
-                                                --if OBJECT.IS_OBJECT_A_PORTABLE_PICKUP(OldObjHandle) then
-                                                    local ObjModelToUse = ArgsTable.Objects[j].SelectedModels[math.random(#ArgsTable.Objects[j].SelectedModels)]
-                                                    local HandleToSet = 0
-                                                    local OldHandleToSet = OldObjHandle
-                                                    local NetIDToSet = 0
-                                                    if ArgsTable.Objects[j].DisabledModels ~= nil then
-                                                        local EntModel = ENTITY.GET_ENTITY_MODEL(OldObjHandle)
-                                                        for k = 1, #ArgsTable.Objects[j].DisabledVehs do
-                                                            if EntModel == joaat(ArgsTable.Objects[j].DisabledModels[k].Model1) then
-                                                                if ArgsTable.Objects[j].DisabledModels[k].Model2 ~= nil then
-                                                                    ObjModelToUse = ArgsTable.Objects[j].DisabledModels[k].Model2
-                                                                    if ArgsTable.Objects[j].DisabledModels[k].Model1 == ArgsTable.Objects[j].DisabledModels[k].Model2 then
-                                                                        HandleToSet = OldObjHandle
-                                                                        NetIDToSet = OldNetID
-                                                                        OldHandleToSet = 0
+                                local CanReplace = true
+                                if OnlyReplaceMissionTargets then
+                                    if ArgsTable.Objects[j].IsSupply ~= nil then
+                                        if not ArgsTable.Objects[j].IsSupply then
+                                            CanReplace = false
+                                        else
+                                            MoreCreateAttemptsObj = 3
+                                        end
+                                    else
+                                        CanReplace = false
+                                    end
+                                end
+                                if CanReplace then
+                                    local OldNetID = memory.read_int(memory.script_local(ScriptName, ArgsTable.Objects[j].LocalAddr + ArgsTable.Objects[j].NextOffset * (i - ArgsTable.Objects[j].DecreaseI)))
+                                    if OldNetID > 0 then
+                                        local OldObjHandle = 0
+                                        util.spoof_script(ScriptName, function()
+                                            OldObjHandle = NETWORK.NET_TO_OBJ(OldNetID)
+                                        end)
+                                        if OldObjHandle ~= 0 then
+                                            local EntType = ENTITY.GET_ENTITY_TYPE(OldObjHandle)
+                                            if EntType == 3 then
+                                                if not ENTITY.IS_ENTITY_ATTACHED_TO_ANY_PED(OldObjHandle) then
+                                                    --if OBJECT.IS_OBJECT_A_PORTABLE_PICKUP(OldObjHandle) then
+                                                        local ObjModelToUse = ArgsTable.Objects[j].SelectedModels[math.random(#ArgsTable.Objects[j].SelectedModels)]
+                                                        local HandleToSet = 0
+                                                        local OldHandleToSet = OldObjHandle
+                                                        local NetIDToSet = 0
+                                                        if ArgsTable.Objects[j].DisabledModels ~= nil then
+                                                            local EntModel = ENTITY.GET_ENTITY_MODEL(OldObjHandle)
+                                                            for k = 1, #ArgsTable.Objects[j].DisabledVehs do
+                                                                if EntModel == joaat(ArgsTable.Objects[j].DisabledModels[k].Model1) then
+                                                                    if ArgsTable.Objects[j].DisabledModels[k].Model2 ~= nil then
+                                                                        ObjModelToUse = ArgsTable.Objects[j].DisabledModels[k].Model2
+                                                                        if ArgsTable.Objects[j].DisabledModels[k].Model1 == ArgsTable.Objects[j].DisabledModels[k].Model2 then
+                                                                            HandleToSet = OldObjHandle
+                                                                            NetIDToSet = OldNetID
+                                                                            OldHandleToSet = 0
+                                                                        end
                                                                     end
                                                                 end
                                                             end
                                                         end
-                                                    end
-                                                    ArgsTable.Objects[j].ObjectsT[i] = {Model = ObjModelToUse, NetID = NetIDToSet, Handle = HandleToSet, OldHandle = OldHandleToSet, OldNetID = OldNetID, Attempts = 0}
-                                                --end
+                                                        ArgsTable.Objects[j].ObjectsT[i] = {Model = ObjModelToUse, NetID = NetIDToSet, Handle = HandleToSet, OldHandle = OldHandleToSet, OldNetID = OldNetID, Attempts = 0 - MoreCreateAttemptsObj}
+                                                    --end
+                                                end
                                             end
                                         end
                                     end
@@ -1658,7 +1819,7 @@ function ScriptHandler(ArgsTable)
                             end
                             if ArgsTable.Objects[j].ObjectsT[i] ~= nil then
                                 if ArgsTable.Objects[j].ObjectsT[i].NetID == 0 then
-                                    if ArgsTable.Objects[j].ObjectsT[i].Attempts < MaxCreateAttemps then
+                                    if ArgsTable.Objects[j].ObjectsT[i].Attempts < MaxCreateAttemps + MoreCreateAttemptsObj then
                                         if not STREAMING.HAS_MODEL_LOADED(joaat(ArgsTable.Objects[j].ObjectsT[i].Model)) then
                                             STREAMING.REQUEST_MODEL(joaat(ArgsTable.Objects[j].ObjectsT[i].Model))
                                         end
@@ -1817,6 +1978,7 @@ function ScriptHandler(ArgsTable)
                                 if ArgsTable.PropsToBring[j].PropsT[i] ~= nil then
                                     if ArgsTable.PropsToBring[j].PropsT[i].Handle ~= 0 then
                                         if BringPropsCloser then
+                                            local Teleported = false
                                             if not ENTITY.IS_ENTITY_ATTACHED_TO_ANY_PED(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
                                                 local ExtraCondition = false
                                                 if BringEntsLOSBased then
@@ -1827,6 +1989,7 @@ function ScriptHandler(ArgsTable)
                                                     if FoundCoords2 then
                                                         if not MISC.IS_POSITION_OCCUPIED(OutPos2.x, OutPos2.y, OutPos2.z, 0.5, false, true, true, true, false, PlayerPed, false) then
                                                             if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
+                                                                Teleported = true
                                                                 ENTITY.SET_ENTITY_COORDS(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutPos2.x, OutPos2.y, OutPos2.z)
                                                             end
                                                         else
@@ -1834,6 +1997,7 @@ function ScriptHandler(ArgsTable)
                                                             if FoundCoords then
                                                                 if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, PlayerPed, false) then
                                                                     if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
+                                                                        Teleported = true
                                                                         ENTITY.SET_ENTITY_COORDS(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
                                                                         ENTITY.SET_ENTITY_HEADING(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutHeading)
                                                                     end
@@ -1845,10 +2009,18 @@ function ScriptHandler(ArgsTable)
                                                         if FoundCoords then
                                                             if not MISC.IS_POSITION_OCCUPIED(OutPos.x, OutPos.y, OutPos.z, 0.5, false, true, true, true, false, PlayerPed, false) then
                                                                 if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.PropsToBring[j].PropsT[i].Handle) then
+                                                                    Teleported = true
                                                                     ENTITY.SET_ENTITY_COORDS(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutPos.x, OutPos.y, OutPos.z)
                                                                     ENTITY.SET_ENTITY_HEADING(ArgsTable.PropsToBring[j].PropsT[i].Handle, OutHeading)
                                                                 end
                                                             end
+                                                        end
+                                                    end
+                                                    if not Teleported then
+                                                        local FVect = ENTITY.GET_ENTITY_FORWARD_VECTOR(PlayerPed)
+                                                        local NewPos = {x = PlPos.x + FVect.x * 5.0, y = PlPos.y + FVect.y * 5.0, z = PlPos.z + FVect.z * 5.0}
+                                                        if not MISC.IS_POSITION_OCCUPIED(NewPos.x, NewPos.y, NewPos.z, 0.5, false, true, true, true, false, PlayerPed, false) then
+                                                            ENTITY.SET_ENTITY_COORDS(ArgsTable.PropsToBring[j].PropsT[i].Handle, NewPos.x, NewPos.y, NewPos.z)
                                                         end
                                                     end
                                                 end
@@ -1878,6 +2050,11 @@ function ScriptHandler(ArgsTable)
             if ArgsTable.LocalToEditT ~= nil then
                 if ArgsTable.LocalToEditT.Tick > 0 then
                     ArgsTable.LocalToEditT.Tick = 0
+                end
+            end
+            if ArgsTable.LocalsToEditT ~= nil then
+                if ArgsTable.LocalsToEditT.IndexFound ~= nil then
+                    ArgsTable.LocalsToEditT.IndexFound = 0
                 end
             end
             for k = 1, #ArgsTable.Vehicles do
@@ -1936,7 +2113,7 @@ end
 
 function FindRightSpawnPed(PosX, PosY, PosZ, MinDist, MaxDist)
 	local OutPos = v3.new()
-	local FoundCoord = PATHFIND.GET_SAFE_COORD_FOR_PED(PosX + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosY + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosZ, false, OutPos, 14)
+	local FoundCoord = PATHFIND.GET_SAFE_COORD_FOR_PED(PosX + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosY + (math.random() < 0.5 and math.random(-MaxDist, -MinDist) or math.random(MinDist, MaxDist)), PosZ, false, OutPos, 16)
 	return OutPos, FoundCoord
 end
 
@@ -1999,4 +2176,125 @@ function set_bit(value, bit)
 end
 util.create_tick_handler(function()
 	return true
+end)
+
+local PatchStromberg = false
+menu.toggle(DevToolsMenu, "Patch Stromberg", {}, "", function(toggle)
+	PatchStromberg = toggle
+	if PatchStromberg then
+		local Patched = false
+		while PatchStromberg do
+			if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("gb_illicit_goods_resupply")) > 0 then
+				if not Patched then
+					local Addr = memory.scan_script("gb_illicit_goods_resupply", "28 F6 0F BD 3B 2E 03 01 28 0C 87 B3 CF")
+					if Addr ~= 0 then
+                        Patched = true
+						Addr = Addr + 9
+						memory.write_int(Addr, joaat("stromberg"))
+						Print("Patched")
+					end
+				end
+            else
+                Patched = false
+			end
+			Wait()
+		end
+	end
+end)
+local PatchCrates = false
+menu.toggle(DevToolsMenu, "Patch Crates", {}, "", function(toggle)
+	PatchCrates = toggle
+	if PatchCrates then
+		local Patched = false
+		while PatchCrates do
+			if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("gb_illicit_goods_resupply")) > 0 then
+				if not Patched then
+					--local Addr = memory.scan_script("gb_smuggler", "71 59 ? ? 38 04 2E ? ? 38 00 5D ? ? ?")
+                    local Addr = memory.scan_script("gb_illicit_goods_resupply", "5D ? ? ? 56 ? ? 72 39 04 55 ? ? 38 04")
+					if Addr ~= 0 then
+                        Patched = true
+                        local HexesT = {0x43, 0x08, 0x00, 0x2E, 0x02, 0x01}
+                        for i = 1, #HexesT do
+                            memory.write_byte(Addr + (i-1), HexesT[i])
+                        end
+						Print("Patched")
+					end
+				end
+            else
+                Patched = false
+			end
+			Wait()
+		end
+	end
+end)
+
+function PatchScript(Args)
+    if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat(Args.ScriptName)) > 0 then
+        Args.Cleared = false
+        for i = 1, #Args.Patches do
+            if not Args.Patches[i].Patched then
+                local Addr = memory.scan_script(Args.ScriptName, Args.Patches[i].Pattern)
+                if Addr ~= 0 then
+                    Addr = Addr + Args.Patches[i].Offset
+                    for j = 1, #Args.Patches[i].PatchesToApply do
+                        local AddrTarget = Addr + Args.Patches[i].PatchesToApply[j].Offset
+                        if Args.Patches[i].PatchesToApply[j].HexToWrite ~= nil then
+                            local HexesT = Args.Patches[i].PatchesToApply[j].HexToWrite
+                            for k = 1, #HexesT do
+                                memory.write_byte(AddrTarget + (k-1), HexesT[k])
+                            end
+                        end
+                        if Args.Patches[i].PatchesToApply[j].WriteInt ~= nil then
+                             memory.write_int(AddrTarget, Args.Patches[i].PatchesToApply[j].WriteInt)
+                        end
+                        if Args.Patches[i].PatchesToApply[j].WriteFloat ~= nil then
+                            memory.write_float(AddrTarget, Args.Patches[i].PatchesToApply[j].WriteFloat)
+                       end
+                    end
+                    Args.Patches[i].Patched = true
+                end
+            end
+        end
+    else
+        if not Args.Cleared then
+            for i = 1, #Args.Patches do
+                Args.Patches[i].Patched = false
+            end
+            Args.Cleared = true
+        end
+    end
+end
+
+local MissionChooserMenu = menu.list(menu.my_root(), "Mission Chooser", {}, "")
+
+local Global1 = SplitGlobals("Global_2738587.f_5234.f_346")
+local Global2 = SplitGlobals("Global_2738587.f_5234.f_347")
+local Global3 = SplitGlobals("Global_2738587.f_5234.f_348")
+
+local SettedValue1 = 0
+local SettedValue2 = 0
+local SettedValue3 = 0
+
+menu.slider(MissionChooserMenu, "Valor do endereço 1", {}, "", 0, 50, 0, 1, function(value)
+	SettedValue1 = value
+end)
+
+menu.slider(MissionChooserMenu, "Valor do endereço 2", {}, "", 0, 150, 0, 1, function(value)
+	SettedValue2 = value
+end)
+
+menu.slider(MissionChooserMenu, "Valor do endereço 3", {}, "", 0, 50, 0, 1, function(value)
+	SettedValue3 = value
+end)
+
+menu.toggle_loop(MissionChooserMenu, "Manipular esse endereço 1", {}, "Conhecido como número da missão.", function(toggle)
+	memory.write_int(memory.script_global(Global1), SettedValue1)
+end)
+
+menu.toggle_loop(MissionChooserMenu, "Manipular esse endereço 2", {}, "Conhecido como localização.", function(toggle)
+	memory.write_int(memory.script_global(Global2), SettedValue2)
+end)
+
+menu.toggle_loop(MissionChooserMenu, "Manipular esse endereço 3", {}, "Conhecido como localização.", function(toggle)
+	memory.write_int(memory.script_global(Global3), SettedValue3)
 end)

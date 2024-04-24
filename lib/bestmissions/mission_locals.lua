@@ -322,7 +322,7 @@ ContrabandBuyT = {
     ScriptName = "gb_contraband_buy",
     Vehicles = {{
         MaxLen = 3,
-        LocalAddr = SplitGlobals("Local_599.f_14"),
+        LocalAddr = SplitGlobals("Local_601.f_14"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = SupplyVehsList,
@@ -335,7 +335,7 @@ ContrabandBuyT = {
     },
     {
         MaxLen = 6,
-        LocalAddr = SplitGlobals("Local_599.f_159"),
+        LocalAddr = SplitGlobals("Local_601.f_159"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = VehsList,
@@ -347,7 +347,7 @@ ContrabandBuyT = {
     }},
     Peds = {{
         MaxLen = 15,
-        LocalAddr = SplitGlobals("Local_599.f_23[*9*]"),
+        LocalAddr = SplitGlobals("Local_601.f_23[*9*]"),
         NextOffset = 9,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -358,7 +358,7 @@ ContrabandBuyT = {
     }},
     Objects = {{
         MaxLen = 3,
-        LocalAddr = SplitGlobals("Local_599.f_14"),
+        LocalAddr = SplitGlobals("Local_601.f_14"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Global_Objects,
@@ -382,7 +382,7 @@ ContrabandSellT = {
     ClearedBlips = false,
     Vehicles = {{
         MaxLen = 3,
-        LocalAddr = SplitGlobals("Local_541.f_35"),
+        LocalAddr = SplitGlobals("Local_543.f_35"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = SupplyVehsList,
@@ -489,7 +489,7 @@ BusinessBattlesT = {
     ClearedBlips = false,
     Vehicles = {{
         MaxLen = 8,
-        LocalAddr = SplitGlobals("Local_2399"),
+        LocalAddr = SplitGlobals("Local_2402"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = SupplyVehsList,
@@ -502,7 +502,7 @@ BusinessBattlesT = {
     },
     {
         MaxLen = 30,
-        LocalAddr = SplitGlobals("Local_2399.f_624[*7*]"),
+        LocalAddr = SplitGlobals("Local_2402.f_624[*7*]"),
         NextOffset = 7,
         DecreaseI = 1,
         SelectedModels = VehsList,
@@ -514,7 +514,7 @@ BusinessBattlesT = {
     }},
     Peds = {{
         MaxLen = 35,
-        LocalAddr = SplitGlobals("Local_2399.f_98[*15*]"),
+        LocalAddr = SplitGlobals("Local_2402.f_98[*15*]"),
         NextOffset = 15,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -525,7 +525,7 @@ BusinessBattlesT = {
     }},
     Objects = {{
         MaxLen = 8,
-        LocalAddr = SplitGlobals("uLocal_2399.f_1110"),
+        LocalAddr = SplitGlobals("uLocal_2402.f_1110"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Global_Objects,
@@ -602,7 +602,7 @@ ContrabandBuy2T = {
     LocalsToEditT = {{Tick = 0, MaxTick = 0, LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
     Vehicles = {{
         MaxLen = 23,
-        LocalAddr = SplitGlobals("Local_5621.f_723[iParam0 /*8*/]"),
+        LocalAddr = SplitGlobals("Local_5792.f_723[iParam0 /*8*/]"),
         NextOffset = 8,
         DecreaseI = 1,
         SelectedModels = VehsList,
@@ -614,7 +614,7 @@ ContrabandBuy2T = {
     }},
     Peds = {{
         MaxLen = 26,
-        LocalAddr = SplitGlobals("Local_5621.f_72[iParam0 /*25*/]"),
+        LocalAddr = SplitGlobals("Local_5792.f_72[iParam0 /*25*/]"),
         NextOffset = 25,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -634,7 +634,7 @@ HeadhunterT = {
     ClearedBlips = false,
     Vehicles = {{
         MaxLen = 4,
-        LocalAddr = SplitGlobals("Local_94.f_2[bVar0 /*26*/].f_2"),
+        LocalAddr = SplitGlobals("Local_96.f_2[bVar0 /*26*/].f_2"),
         NextOffset = 26,
         DecreaseI = 1,
         SelectedModels = VehsList,
@@ -646,7 +646,7 @@ HeadhunterT = {
     }},
     Peds = {{
         MaxLen = 4,
-        LocalAddr = SplitGlobals("Local_94.f_2[bVar0 /*26*/].f_1"),
+        LocalAddr = SplitGlobals("Local_96.f_2[bVar0 /*26*/].f_1"),
         NextOffset = 26,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -657,7 +657,7 @@ HeadhunterT = {
     },
     {
         MaxLen = 4,
-        LocalAddr = SplitGlobals("Local_94.f_2[iParam0 /*26*/].f_7[bVar1]"),
+        LocalAddr = SplitGlobals("Local_96.f_2[iParam0 /*26*/].f_7[bVar1]"),
         NextOffset = 26,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -668,7 +668,7 @@ HeadhunterT = {
     },
     {
         MaxLen = 4,
-        LocalAddr = SplitGlobals("Local_94.f_2[iParam0 /*26*/].f_3[iVar1].f_1"),
+        LocalAddr = SplitGlobals("Local_96.f_2[iParam0 /*26*/].f_3[iVar1].f_1"),
         NextOffset = 26,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -679,7 +679,7 @@ HeadhunterT = {
     },
     {
         MaxLen = 4,
-        LocalAddr = SplitGlobals("Local_94.f_2[iParam0 /*26*/].f_3[iVar1].f_2"),
+        LocalAddr = SplitGlobals("Local_96.f_2[iParam0 /*26*/].f_3[iVar1].f_2"),
         NextOffset = 26,
         DecreaseI = 1,
         SelectedModels = Peds_Models_List,
@@ -700,7 +700,7 @@ BikerRescueContactT = {
     LocalsToEditT = {{Tick = 0, MaxTick = 0,LocalAddr = SplitGlobals("Local_5621.f_1207.f_1"), ToNum = 0}},
     Vehicles = {{
         MaxLen = 4,
-        LocalAddr = SplitGlobals("Local_1261.f_36"),
+        LocalAddr = SplitGlobals("Local_1264.f_36"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = VehsList,
@@ -712,7 +712,7 @@ BikerRescueContactT = {
     }},
     Peds = {{
         MaxLen = 20,
-        LocalAddr = SplitGlobals("Local_1261.f_11"),
+        LocalAddr = SplitGlobals("Local_1264.f_11"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Peds_Models_List,
@@ -723,7 +723,7 @@ BikerRescueContactT = {
     },
     {
         MaxLen = 3,
-        LocalAddr = SplitGlobals("Local_1261.f_7"),
+        LocalAddr = SplitGlobals("Local_1264.f_7"),
         NextOffset = 1,
         DecreaseI = 0,
         SelectedModels = Peds_Models_List,
@@ -976,10 +976,10 @@ BusinessBattlesSellT = {
     ScriptName = "business_battles_sell",
     ClearedBlips = false,
     Vehicles = {{
-        MaxLen = 0,
-        LocalAddr = SplitGlobals("Local_2399"),
-        NextOffset = 1,
-        DecreaseI = 0,
+        MaxLen = 1,
+        LocalAddr = SplitGlobals("Local_2310.f_31[iParam0 /*42*/]"),
+        NextOffset = 42,
+        DecreaseI = 1,
         SelectedModels = SupplyVehsList,
         DisabledModels = nil,
         UpgradeType = 1,

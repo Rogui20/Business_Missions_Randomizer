@@ -81,7 +81,7 @@ menu.toggle(MissionEnhancerMenu, "Only Track Entities", {}, "", function(Toggle)
         MaxCreateAttemps = 0
     end
 end)
-local OnlyReplaceMissionTargets = true
+local OnlyReplaceMissionTargets = false
 menu.toggle(MissionEnhancerMenu, "Only Replace Mission Targets", {}, "", function(Toggle)
 	OnlyReplaceMissionTargets = Toggle
     if not OnlyReplaceMissionTargets then

@@ -1011,12 +1011,12 @@ function CopyVehSettingsToAnotherVeh(CopyVehSetts, ToVeh)
 end
 
 function SetSupplyVehSettings(Veh, Health)
-    ENTITY.SET_ENTITY_MAX_HEALTH(Veh, Health + 50000)
-	ENTITY.SET_ENTITY_HEALTH(Veh, Health + 50000)
-	VEHICLE.SET_VEHICLE_ENGINE_HEALTH(Veh, 50000 + Health)
-	VEHICLE.SET_PLANE_ENGINE_HEALTH(Veh, 50000 + Health)
-	VEHICLE.SET_VEHICLE_PETROL_TANK_HEALTH(Veh, 50000 + Health)
-	VEHICLE.SET_VEHICLE_BODY_HEALTH(Veh, 50000 + Health)
+    ENTITY.SET_ENTITY_MAX_HEALTH(Veh, Health)
+	ENTITY.SET_ENTITY_HEALTH(Veh, Health)
+	VEHICLE.SET_VEHICLE_ENGINE_HEALTH(Veh, 1000 + Health)
+	VEHICLE.SET_PLANE_ENGINE_HEALTH(Veh, 1000 + Health)
+	VEHICLE.SET_VEHICLE_PETROL_TANK_HEALTH(Veh, 1000 + Health)
+	VEHICLE.SET_VEHICLE_BODY_HEALTH(Veh, 1000 + Health)
     VEHICLE.SET_VEHICLE_CAN_BE_TARGETTED(Veh, false)
     VEHICLE.SET_VEHICLE_ALLOW_HOMING_MISSLE_LOCKON(Veh, false, false)
     VEHICLE.SET_VEHICLE_TYRES_CAN_BURST(Veh, false)
@@ -1125,15 +1125,16 @@ function ScriptHandler(ArgsTable)
                         if not IsHost then
                             NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
                             ArgsTable.NonHostTick = ArgsTable.NonHostTick + 1
-                            if ArgsTable.NonHostTick > 1000 then
+                            if ArgsTable.NonHostTick > 100 then
                                 util.request_script_host(ScriptName)
+                                ArgsTable.NonHostTick = 0
                             end
                         else
                             ArgsTable.NonHostTick = 0
                         end
                         IsHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
                         if IsHost then
-                            NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
+                            --NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
                         end
                     end
                 end)
@@ -1299,7 +1300,7 @@ function ScriptHandler(ArgsTable)
                                                                 OldHandleToSet = 0
                                                             end
                                                         end
-                                                        ArgsTable.Vehicles[k].VehiclesT[i] = {Model = VehModelToUse, NetID = NetIDToSet, Handle = HandleToSet, OldHandle = OldHandleToSet, UpgradeType = UpgradeType, OldNetID = OldNetID, Attempts = 0 - MoreCreateAttemptsVeh}
+                                                        ArgsTable.Vehicles[k].VehiclesT[i] = {Model = VehModelToUse, NetID = NetIDToSet, Handle = HandleToSet, OldHandle = OldHandleToSet, UpgradeType = UpgradeType, OldNetID = OldNetID, Attempts = 0 - MoreCreateAttemptsVeh, HasUpgraded = false}
                                                     end
                                                 end
                                             end
@@ -1338,6 +1339,7 @@ function ScriptHandler(ArgsTable)
                                                     SetSupplyVehSettings(VehHandle, 50000)
                                                     VEHICLE.SET_VEHICLE_COLOURS(VehHandle, math.random(0, 160), math.random(0, 160))
                                                     ENTITY.SET_ENTITY_INVINCIBLE(VehHandle, true)
+                                                    ArgsTable.Vehicles[k].VehiclesT[i].HasUpgraded = true
                                                 end
                                                 if ArgsTable.Vehicles[k].VehiclesT[i].UpgradeType == 1 then
                                                     local VehHealth = 5000
@@ -1461,12 +1463,26 @@ function ScriptHandler(ArgsTable)
                                                 end
                                             end
                                         end
+                                        if ArgsTable.Vehicles[k].VehiclesT[i].UpgradeType == 2 then
+                                            if not entities.is_invulnerable(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
+                                                if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
+                                                    ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Vehicles[k].VehiclesT[i].Handle, true)
+                                                    Print("Invincible")
+                                                end
+                                            end
+                                        end
                                     end
                                     if ArgsTable.Vehicles[k].VehiclesT[i].UpgradeType == 2 then
                                         if not entities.is_invulnerable(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
                                             if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
                                                 ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Vehicles[k].VehiclesT[i].Handle, true)
                                                 Print("Invincible")
+                                            end
+                                        end
+                                        if not ArgsTable.Vehicles[k].VehiclesT[i].HasUpgraded then
+                                            if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Vehicles[k].VehiclesT[i].Handle) then
+                                                ArgsTable.Vehicles[k].VehiclesT[i].HasUpgraded = true
+                                                SetSupplyVehSettings(ArgsTable.Vehicles[k].VehiclesT[i].Handle, 50000)
                                             end
                                         end
                                     end
@@ -1862,6 +1878,8 @@ function ScriptHandler(ArgsTable)
                                                 STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(joaat(ArgsTable.Objects[j].ObjectsT[i].Model))
                                                 ENTITY.SET_ENTITY_HEADING(ObjHandle, OldHeading)
                                                 ENTITY.FREEZE_ENTITY_POSITION(ObjHandle, false)
+                                                ENTITY.SET_ENTITY_DYNAMIC(ObjHandle, true)
+                                                PHYSICS.ACTIVATE_PHYSICS(ObjHandle)
                                             end
                                         end
                                     else
@@ -1941,7 +1959,11 @@ function ScriptHandler(ArgsTable)
                                     if InvincibleSupply then
                                         if ArgsTable.Objects[j].IsSupply ~= nil then
                                             if ArgsTable.Objects[j].IsSupply then
-                                                ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Objects[j].ObjectsT[i].Handle, true)
+                                                if not entities.is_invulnerable(ArgsTable.Objects[j].ObjectsT[i].Handle) then
+                                                    if NETWORK.NETWORK_REQUEST_CONTROL_OF_ENTITY(ArgsTable.Objects[j].ObjectsT[i].Handle) then
+                                                        ENTITY.SET_ENTITY_INVINCIBLE(ArgsTable.Objects[j].ObjectsT[i].Handle, true)
+                                                    end
+                                                end
                                             end
                                         end
                                     end
@@ -2297,4 +2319,121 @@ end)
 
 menu.toggle_loop(MissionChooserMenu, "Manipular esse endereço 3", {}, "Conhecido como localização.", function(toggle)
 	memory.write_int(memory.script_global(Global3), SettedValue3)
+end)
+
+menu.action(MiscMenu, "Set 9999 Lives", {}, "", function(toggle)
+	if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("fm_mission_controller")) > 0 then
+		local LivesLocalAddr = SplitGlobals("Local_19728.f_1730[bVar0]")
+		for i = 1, 100 do
+			local IsHost = false
+			util.spoof_script("fm_mission_controller", function()
+				IsHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+				--NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+			end)
+			if IsHost then
+				for k = 0, 3 do
+					memory.write_int(memory.script_local("fm_mission_controller", LivesLocalAddr + k), -9999)
+				end
+				break
+			else
+				util.request_script_host("fm_mission_controller")
+			end
+			Wait(1000)
+		end
+	end
+end)
+
+menu.action(MiscMenu, "Set 0 Lives", {}, "", function(toggle)
+	if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("fm_mission_controller")) > 0 then
+		local LivesLocalAddr = SplitGlobals("Local_19728.f_1730[bVar0]")
+		for i = 1, 100 do
+			local IsHost = false
+			util.spoof_script("fm_mission_controller", function()
+				IsHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+				--NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+			end)
+			if IsHost then
+				for k = 0, 3 do
+					memory.write_int(memory.script_local("fm_mission_controller", LivesLocalAddr + k), 0)
+				end
+				break
+			else
+				util.request_script_host("fm_mission_controller")
+			end
+			Wait(1000)
+		end
+	end
+end)
+
+menu.action(MiscMenu, "am_kill_list Start", {}, "", function(toggle)
+	if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("am_kill_list")) > 0 then
+		local StartLocalAddr = SplitGlobals("Local_96.f_241")
+		for i = 1, 100 do
+			local IsHost = false
+			util.spoof_script("am_kill_list", function()
+				IsHost = NETWORK.NETWORK_IS_HOST_OF_THIS_SCRIPT()
+				--NETWORK.NETWORK_REQUEST_TO_BE_HOST_OF_THIS_SCRIPT()
+			end)
+			if IsHost then
+				memory.write_int(memory.script_local("am_kill_list", StartLocalAddr), 1)
+				break
+			else
+				util.request_script_host("am_kill_list")
+			end
+			Wait(1000)
+		end
+	end
+end)
+
+local RotateHost = false
+menu.toggle(MiscMenu, "Rotate Script Host", {}, "To fix infinite loading.", function(toggle)
+    RotateHost = toggle
+    if RotateHost then
+        local CurrentIndex = 1
+        local PlayersT = {}
+        local FoundPlayersT = {}
+        while RotateHost do
+            local Delay = 0
+            for i = 0, 29 do
+                if FoundPlayersT[i+1] == nil then
+                    if NETWORK.NETWORK_IS_PLAYER_CONNECTED(i) then
+                        FoundPlayersT[i+1] = i+1
+                        PlayersT[#PlayersT+1] = {ID = i, HasGaveScriptHost = false}
+                    end
+                end
+            end
+            if PlayersT[CurrentIndex] ~= nil then
+                if NETWORK.NETWORK_IS_PLAYER_CONNECTED(PlayersT[CurrentIndex].ID) then
+                    local IsHost = false
+                    util.spoof_script("fm_mission_controller", function()
+                        local HostID = NETWORK.NETWORK_GET_HOST_OF_THIS_SCRIPT()
+                        IsHost = HostID == PlayersT[CurrentIndex].ID
+                        Print(HostID)
+                    end)
+                    if not IsHost then
+                        util.request_script_host("fm_mission_controller")
+                        Wait(1000)
+                        util.give_script_host("fm_mission_controller", PlayersT[CurrentIndex].ID)
+                        Delay = 1000
+                    else
+                        Delay = 5000
+                        CurrentIndex = CurrentIndex + 1
+                    end
+                else
+                    FoundPlayersT[PlayersT[CurrentIndex].ID+1] = nil
+                    table.remove(PlayersT, CurrentIndex)
+                    --PlayersT[CurrentIndex] = nil
+                    CurrentIndex = CurrentIndex + 1
+                end
+            else
+                --table.remove(PlayersT, CurrentIndex)
+                --PlayersT[CurrentIndex] = nil
+                CurrentIndex = CurrentIndex + 1
+            end
+            if CurrentIndex > #PlayersT then
+                CurrentIndex = 1
+            end
+            Wait(Delay)
+        end
+    end
 end)
